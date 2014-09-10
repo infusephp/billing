@@ -19,13 +19,15 @@
         "psr-4": {"app\\billing\\": "src/"}
     },
 	"require": {
-		"php": ">=5.4.0"
+		"php": ">=5.4.0",
+		"stripe/stripe-php": "v1.17.2"
 	},
 	"require-dev": {
 		"satooshi/php-coveralls": "dev-master",
 		"idealistsoft/framework-bootstrap": "dev-master",
 		"idealistsoft/framework-auth": "dev-master",
-		"robmorgan/phinx": "*"
+		"robmorgan/phinx": "*",
+		"mockery/mockery": "0.9.1"
 	},
 	"minimum-stability": "dev"
 }
