@@ -29,18 +29,18 @@ class StripeWebhook
 	 */
     public function process()
     {
-        if( !isset( $this->event[ 'id' ] ) )
-
+        if ( !isset($this->event['id'])) {
             return 'invalid event';
+        }
 
         // check that the livemode matches our development state
-        if( !($this->event[ 'livemode' ] && $this->app[ 'config' ]->get( 'site.production-level' ) || !$this->event[ 'livemode' ] && !$this->app[ 'config' ]->get( 'site.production-level' ) ) )
-
+        if ( !($this->event[ 'livemode' ] && $this->app[ 'config' ]->get( 'site.production-level' ) || !$this->event[ 'livemode' ] && !$this->app[ 'config' ]->get( 'site.production-level' ) ) ) {
             return 'livemode mismatch';
+        }
 
-        if( isset( $this->event[ 'user_id' ] ) )
-
+        if (isset($this->event['user_id'])) {
             return 'stripe connect event';
+        }
 
         $apiKey = $this->app[ 'config' ]->get( 'stripe.secret' );
 
@@ -149,10 +149,10 @@ class StripeWebhook
             // get the customer information
             $customer = Stripe_Customer::retrieve( $eventData->customer, $apiKey );
 
-            $memberUpdateData = [];
+            $update = [];
 
             if( $event->type == 'customer.subscription.deleted' )
-                $memberUpdateData[ 'canceled' ] = true;
+                $update[ 'canceled' ] = true;
 
             if (is_array($customer->subscriptions->data)) {
                 // we only use the 1st subscription
@@ -160,26 +160,26 @@ class StripeWebhook
                     $subscription = $customer->subscriptions->data[ 0 ];
 
                     if ( is_object( $subscription ) ) {
-                        $memberUpdateData = [
+                        $update = [
                             'past_due' => $subscription->status == 'past_due',
                             'trial_ends' => $subscription->trial_end ];
 
                         if (in_array($subscription->status, ['trialing','active','past_due']))
-                            $memberUpdateData['renews_next'] = $subscription->current_period_end;
+                            $update['renews_next'] = $subscription->current_period_end;
 
                         if ($subscription->status == 'canceled') {
-                            $memberUpdateData[ 'canceled' ] = true;
-                            $memberUpdateData[ 'canceled_at' ] = $subscription->canceled_at;
+                            $update['canceled'] = true;
+                            $update['canceled_at'] = $subscription->canceled_at;
                         }
                     }
                 }
                 // member has canceled
                 else
-                    $memberUpdateData[ 'canceled' ] = true;
+                    $update['canceled'] = true;
             }
 
-             // update subscription information
-             $member->set( $memberUpdateData );
+             // update subscription information on member
+             $member->set($update);
         }
 
         return 'ok';
