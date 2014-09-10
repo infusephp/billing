@@ -29,7 +29,7 @@ class Controller
     {
         $this->app[ 'user' ]->enableSU();
 
-        $webhook = new StripeWebhook($req->request());
+        $webhook = new StripeWebhook($req->request(), $this->app);
         $res->setBody($webhook->process());
     }
 }
