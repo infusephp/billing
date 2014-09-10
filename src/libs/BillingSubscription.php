@@ -109,10 +109,10 @@ class BillingSubscription
             ]);
 
             // update the user's billing state
-            if (in_array($subscription->status, ['active', 'trialing'])) {
+            if (in_array($subscription->status, ['active', 'trialing']) && $subscription->plan->id == $plan) {
                 $this->model->grantAllPermissions();
                 $this->model->set([
-                    'plan' => $this->plan,
+                    'plan' => $plan,
                     'past_due' => false,
                     'renews_next' => $subscription->current_period_end,
                     'trial_ends' => $subscription->trial_end,

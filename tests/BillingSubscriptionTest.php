@@ -221,7 +221,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel->shouldReceive('grantAllPermissions');
         $testModel->shouldReceive('enforcePermissions');
         $testModel->shouldReceive('set')->withArgs([[
-            'plan' => 'test',
+            'plan' => 'blah',
             'past_due' => false,
             'renews_next' => 100,
             'trial_ends' => 100,
