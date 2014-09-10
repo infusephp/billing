@@ -19,7 +19,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $customer = new stdClass();
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
-        $staticCustomer->shouldReceive('retrieve')->withArgs(['cust_test', 'apiKey'])->andReturn($customer);
+        $staticCustomer->shouldReceive('retrieve')->withArgs(['cust_test', 'apiKey'])->andReturn($customer)->once();
 
         $this->assertEquals($customer, $testModel->stripeCustomer());
     }
@@ -30,7 +30,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $testModel->stripe_customer = 'cust_test';
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
-        $staticCustomer->shouldReceive('retrieve')->withArgs(['cust_test', 'apiKey'])->andThrow(new Exception());
+        $staticCustomer->shouldReceive('retrieve')->withArgs(['cust_test', 'apiKey'])->andThrow(new Exception())->once();
 
         $this->assertFalse($testModel->stripeCustomer());
     }
@@ -44,7 +44,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
         $staticCustomer->shouldReceive('create')->withArgs([['description' => 'TestBillingModel(1)'], 'apiKey'])
-            ->andReturn($customer);
+            ->andReturn($customer)->once();
 
         $this->assertEquals($customer, $testModel->stripeCustomer());
     }
@@ -56,7 +56,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
         $staticCustomer->shouldReceive('create')->withArgs([['description' => 'TestBillingModel(1)'], 'apiKey'])
-            ->andThrow(new Exception());
+            ->andThrow(new Exception())->once();
 
         $this->assertFalse($testModel->stripeCustomer());
     }
@@ -71,7 +71,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $customer->shouldReceive('save')->once();
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
-        $staticCustomer->shouldReceive('retrieve')->andReturn($customer);
+        $staticCustomer->shouldReceive('retrieve')->andReturn($customer)->once();
 
         $staticStripe = Mockery::mock('alias:Stripe');
         $staticStripe->shouldReceive('setApiKey')->withArgs(['apiKey'])->once();
@@ -91,7 +91,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $customer->shouldReceive('save')->andThrow(new Exception())->once();
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
-        $staticCustomer->shouldReceive('retrieve')->andReturn($customer);
+        $staticCustomer->shouldReceive('retrieve')->andReturn($customer)->once();
 
         $staticStripe = Mockery::mock('alias:Stripe');
         $staticStripe->shouldReceive('setApiKey')->withArgs(['apiKey'])->once();
