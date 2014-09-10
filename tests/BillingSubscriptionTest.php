@@ -208,6 +208,8 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $resultSub->status = 'active';
         $resultSub->current_period_end = 100;
         $resultSub->trial_end = 100;
+        $resultSub->plan = new stdClass;
+        $resultSub->plan->id = 'blah';
 
         $customer = Mockery::mock('StripeCustomer');
         $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'blah', 'prorate' => true]])
