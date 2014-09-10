@@ -204,20 +204,27 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
 
     public function testChange()
     {
+        $trialEnds = time() + 1000;
+
         $resultSub = new stdClass();
         $resultSub->status = 'active';
         $resultSub->current_period_end = 100;
         $resultSub->trial_end = 100;
-        $resultSub->plan = new stdClass;
+        $resultSub->plan = new stdClass();
         $resultSub->plan->id = 'blah';
 
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'blah', 'prorate' => true]])
+        $customer->shouldReceive('updateSubscription')->withArgs([[
+            'plan' => 'blah',
+            'prorate' => true,
+            'trial_end' => $trialEnds]])
             ->andReturn($resultSub)->once();
 
         $testModel = Mockery::mock('BillingModel','\\app\\billing\\models\\BillableModel');
         $testModel->shouldReceive('get')->withArgs(['canceled'])->andReturn(false);
-        $testModel->shouldReceive('get')->withArgs(['not_charged'])->andReturn(true);
+        $testModel->shouldReceive('get')->withArgs(['not_charged'])->andReturn(false);
+        $testModel->shouldReceive('get')->withArgs(['trial_ends'])->andReturn($trialEnds);
+        $testModel->shouldReceive('get')->withArgs(['renews_next'])->andReturn($trialEnds);
         $testModel->shouldReceive('get')->withArgs(['plan'])->andReturn('test');
         $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
         $testModel->shouldReceive('grantAllPermissions');

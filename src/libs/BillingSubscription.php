@@ -102,11 +102,17 @@ class BillingSubscription
 
         $apiKey = $this->app[ 'config' ]->get('stripe.secret');
 
+        $params = [
+            'plan' => $plan,
+            'prorate' => true
+        ];
+
+        // maintain the same trial end date if there is one
+        if ($this->trialing())
+            $params[ 'trial_end' ] = $this->model->trial_ends;
+
         try {
-            $subscription = $customer->updateSubscription([
-                'plan' => $plan,
-                'prorate' => true
-            ]);
+            $subscription = $customer->updateSubscription($params);
 
             // update the user's billing state
             if (in_array($subscription->status, ['active', 'trialing']) && $subscription->plan->id == $plan) {
@@ -188,12 +194,8 @@ class BillingSubscription
             return 'active';
 
         // check if the subscription is active or trialing
-        if ($this->model->renews_next > time()) {
-            if ($this->model->trial_ends > time())
-                return 'trialing';
-            else
-                return 'active';
-        }
+        if ($this->model->renews_next > time())
+            return ($this->model->trial_ends > time()) ? 'trialing' : 'active';
 
         // the subscription is past due when its status has been changed
         // to past_due on stripe

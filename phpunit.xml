@@ -9,7 +9,7 @@
   </listeners>
 
   <testsuites>
-    <testsuite name="Cron">
+    <testsuite name="Billing">
       <directory suffix="Test.php">tests</directory>
     </testsuite>
   </testsuites>
