@@ -29,16 +29,16 @@ class StripeWebhook
 	 */
     public function process()
     {
-        if( !isset( $event[ 'id' ] ) )
+        if( !isset( $this->event[ 'id' ] ) )
 
             return 'invalid event';
 
         // check that the livemode matches our development state
-        if( !($event[ 'livemode' ] && $this->app[ 'config' ]->get( 'site.production-level' ) || !$event[ 'livemode' ] && !$this->app[ 'config' ]->get( 'site.production-level' ) ) )
+        if( !($this->event[ 'livemode' ] && $this->app[ 'config' ]->get( 'site.production-level' ) || !$this->event[ 'livemode' ] && !$this->app[ 'config' ]->get( 'site.production-level' ) ) )
 
             return 'livemode mismatch';
 
-        if( isset( $event[ 'user_id' ] ) )
+        if( isset( $this->event[ 'user_id' ] ) )
 
             return 'stripe connect event';
 
@@ -47,9 +47,9 @@ class StripeWebhook
         try {
             // retreive the event, unless it is a deauth event
             // since those cannot be retrieved
-            $validatedEvent = ($event[ 'type' ] == 'account.application.deauthorized') ?
-                (object) $event :
-                Stripe_Event::retrieve( $event[ 'id' ], $apiKey );
+            $validatedEvent = ($this->event[ 'type' ] == 'account.application.deauthorized') ?
+                (object) $this->event :
+                Stripe_Event::retrieve( $this->event[ 'id' ], $apiKey );
 
             return $this->webhook($validatedEvent, $apiKey);
         } catch ( \Exception $e ) {
