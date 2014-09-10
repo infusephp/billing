@@ -67,6 +67,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $testModel->stripe_customer = 'test';
 
         $customer = Mockery::mock('StripeCustomer');
+        $customer->card = false;
         $customer->shouldReceive('save')->once();
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
@@ -86,6 +87,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $testModel->stripe_customer = 'test';
 
         $customer = Mockery::mock('StripeCustomer');
+        $customer->card = false;
         $customer->shouldReceive('save')->andThrow(new Exception())->once();
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
