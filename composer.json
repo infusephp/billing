@@ -1,0 +1,31 @@
+{
+	"name": "idealistsoft/framework-billing",
+	"description": "Stripe billing module for Idealist Framework",
+	"type": "library",
+	"keywords": ["idealist","framework","billing","stripe","subscriptions"],
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "jaredtking",
+			"email": "j@jaredtking.com",
+			"homepage": "http://jaredtking.com"
+		}
+	],
+	"support": {
+		"issues": "https://github.com/idealistsoft/framework-billing/issues",
+		"source": "https://github.com/idealistsoft/framework-billing"
+	},
+    "autoload": {
+        "psr-4": {"app\\billing\\": "src/"}
+    },
+	"require": {
+		"php": ">=5.4.0"
+	},
+	"require-dev": {
+		"satooshi/php-coveralls": "dev-master",
+		"idealistsoft/framework-bootstrap": "dev-master",
+		"idealistsoft/framework-auth": "dev-master",
+		"robmorgan/phinx": "*"
+	},
+	"minimum-stability": "dev"
+}

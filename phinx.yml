@@ -1,0 +1,14 @@
+paths:
+    migrations: %%PHINX_CONFIG_DIR%%/src/migrations
+
+environments:
+    default_migration_table: Migrations
+    default_database: testing
+    testing:
+        adapter: mysql
+        host: localhost
+        name: mydb
+        user: root
+        pass: ''
+        port: 3306
+        charset: utf8
