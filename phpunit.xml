@@ -6,6 +6,7 @@
   <listeners>
     <listener file="vendor/autoload.php"></listener>
     <listener class="TestBootstrap"></listener>
+    <listener class="\Mockery\Adapter\Phpunit\TestListener"></listener>
   </listeners>
 
   <testsuites>

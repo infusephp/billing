@@ -2,8 +2,6 @@
 
 class BillingModelTest extends \PHPUnit_Framework_TestCase
 {
-    public static $customer;
-
     public static function setUpBeforeClass()
     {
         require_once 'TestBillingModel.php';

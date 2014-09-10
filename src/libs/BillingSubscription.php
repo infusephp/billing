@@ -39,8 +39,8 @@ class BillingSubscription
     public function create($token = false)
     {
         // cannot create a subscription if there is already an
-        // active existing plan; must use change() instead
-        if (empty($this->plan) || $this->active())
+        // existing active/unpaid existing plan; must use change() instead
+        if (empty($this->plan) || !in_array($this->status(), ['not_subscribed','canceled']))
             return false;
 
         $customer = $this->model->stripeCustomer();
@@ -92,7 +92,7 @@ class BillingSubscription
      */
     public function change($plan)
     {
-        if (empty($plan) || !$this->active())
+        if (empty($plan) || !$this->active() || $this->model->not_charged)
             return false;
 
         $customer = $this->model->stripeCustomer();
