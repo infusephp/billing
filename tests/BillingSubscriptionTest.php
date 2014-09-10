@@ -200,6 +200,10 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel = new TestBillingModel();
         $this->assertFalse($testModel->subscription()->change('test'));
         $this->assertFalse($testModel->subscription()->change(''));
+
+        $testModel->not_charged = true;
+        $testModel->plan = 'test2';
+        $this->assertFalse($testModel->subscription()->change('test'));
     }
 
     public function testChange()
@@ -246,12 +250,16 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
     public function testChangeFail()
     {
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'blah', 'prorate' => true]])
+        $customer->shouldReceive('updateSubscription')->withArgs([[
+            'plan' => 'blah',
+            'prorate' => true]])
             ->andThrow(new Exception())->once();
 
         $testModel = Mockery::mock('BillingModel','\\app\\billing\\models\\BillableModel');
         $testModel->shouldReceive('get')->withArgs(['canceled'])->andReturn(false);
-        $testModel->shouldReceive('get')->withArgs(['not_charged'])->andReturn(true);
+        $testModel->shouldReceive('get')->withArgs(['not_charged'])->andReturn(false);
+        $testModel->shouldReceive('get')->withArgs(['renews_next'])->andReturn(time() + 1000);
+        $testModel->shouldReceive('get')->withArgs(['trial_ends'])->andReturn(null);
         $testModel->shouldReceive('get')->withArgs(['plan'])->andReturn('test');
         $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
 
