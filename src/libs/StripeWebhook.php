@@ -154,19 +154,23 @@ class StripeWebhook
             if( $event->type == 'customer.subscription.deleted' )
                 $memberUpdateData[ 'canceled' ] = true;
 
-            if ( is_array( $customer->subscriptions->data ) ) {
-                // we only use 1 subscription
+            if (is_array($customer->subscriptions->data)) {
+                // we only use the 1st subscription
                 if ( count( $customer->subscriptions->data ) > 0 ) {
                     $subscription = $customer->subscriptions->data[ 0 ];
 
                     if ( is_object( $subscription ) ) {
                         $memberUpdateData = [
-                            'past_due' => in_array( $subscription->status, [ 'past_due', 'unpaid', 'canceled' ] ),
-                            'renews_next' => $subscription->current_period_end,
-                            'trial_ends' => (int) $subscription->trial_end ];
+                            'past_due' => $subscription->status == 'past_due',
+                            'trial_ends' => $subscription->trial_end ];
 
-                        if( $subscription->status == 'canceled' )
+                        if (in_array($subscription->status, ['trialing','active','past_due']))
+                            $memberUpdateData['renews_next'] = $subscription->current_period_end;
+
+                        if ($subscription->status == 'canceled') {
                             $memberUpdateData[ 'canceled' ] = true;
+                            $memberUpdateData[ 'canceled_at' ] = $subscription->canceled_at;
+                        }
                     }
                 }
                 // member has canceled
