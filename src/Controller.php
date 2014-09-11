@@ -2,11 +2,11 @@
 
 namespace app\billing;
 
-use App;
 use app\billing\libs\StripeWebhook;
 
 class Controller
 {
+    
     public static $properties = [
         'models' => [
             'BillingHistory'
@@ -17,13 +17,6 @@ class Controller
     ];
 
     public static $scaffoldAdmin;
-
-    private $app;
-
-    public function __construct(App $app)
-    {
-        $this->app = $app;
-    }
 
     public function webhook($req, $res)
     {
