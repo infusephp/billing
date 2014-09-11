@@ -86,11 +86,12 @@ class BillingSubscription
     /**
      * Changes the subscription plan
      *
-     * @param string $plan
+     * @param string  $plan    stripe plan id
+     * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
      *
      * @return boolean result
      */
-    public function change($plan)
+    public function change($plan, $noTrial = false)
     {
         if (empty($plan) || !$this->active() || $this->model->not_charged)
             return false;
@@ -108,8 +109,10 @@ class BillingSubscription
         ];
 
         // maintain the same trial end date if there is one
-        if ($this->trialing())
-            $params[ 'trial_end' ] = $this->model->trial_ends;
+        if ($noTrial)
+            $params['trial_end'] = 'now';
+        elseif ($this->trialing())
+            $params['trial_end'] = $this->model->trial_ends;
 
         try {
             $subscription = $customer->updateSubscription($params);

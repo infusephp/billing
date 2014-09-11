@@ -252,7 +252,8 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $customer = Mockery::mock('StripeCustomer');
         $customer->shouldReceive('updateSubscription')->withArgs([[
             'plan' => 'blah',
-            'prorate' => true]])
+            'prorate' => true,
+            'trial_end' => 'now']])
             ->andThrow(new Exception())->once();
 
         $testModel = Mockery::mock('BillingModel','\\app\\billing\\models\\BillableModel');
@@ -265,7 +266,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
 
         $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
 
-        $this->assertFalse($subscription->change('blah'));
+        $this->assertFalse($subscription->change('blah', true));
     }
 
     public function testCancel()
