@@ -6,7 +6,8 @@ use app\billing\libs\StripeWebhook;
 
 class Controller
 {
-    
+    use \InjectApp;
+
     public static $properties = [
         'models' => [
             'BillingHistory'
