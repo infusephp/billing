@@ -148,7 +148,7 @@ abstract class BillableModel extends Model
     {
         $customer = $this->stripeCustomer();
 
-        if (!$customer)
+        if (!$customer || empty($token))
             return false;
 
         // This is necessary because save() on stripe objects does
