@@ -48,8 +48,6 @@ class BillingSubscription
         if (!$customer)
             return false;
 
-        $apiKey = $this->app[ 'config' ]->get('stripe.secret');
-
         $params = [
             'plan' => $this->plan ];
 
@@ -101,8 +99,6 @@ class BillingSubscription
         if (!$customer)
             return false;
 
-        $apiKey = $this->app[ 'config' ]->get('stripe.secret');
-
         $params = [
             'plan' => $plan,
             'prorate' => true
@@ -150,8 +146,6 @@ class BillingSubscription
     {
         if (!$this->active())
             return false;
-
-        $apiKey = $this->app[ 'config' ]->get('stripe.secret');
 
         $customer = $this->model->stripeCustomer();
 
