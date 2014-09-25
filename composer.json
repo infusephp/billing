@@ -24,10 +24,9 @@
 	},
 	"require-dev": {
 		"idealistsoft/framework-bootstrap": "~1.0",
-		"idealistsoft/framework-auth": "dev-master",
+		"idealistsoft/framework-auth": "~1.0",
 		"satooshi/php-coveralls": "0.6.1",
 		"robmorgan/phinx": "~0.3",
 		"mockery/mockery": "0.9.1"
-	},
-	"minimum-stability": "dev"
+	}
 }
