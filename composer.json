@@ -23,10 +23,10 @@
 		"stripe/stripe-php": "v1.17.1"
 	},
 	"require-dev": {
-		"satooshi/php-coveralls": "dev-master",
-		"idealistsoft/framework-bootstrap": "dev-master",
+		"idealistsoft/framework-bootstrap": "~1.0",
 		"idealistsoft/framework-auth": "dev-master",
-		"robmorgan/phinx": "*",
+		"satooshi/php-coveralls": "0.6.1",
+		"robmorgan/phinx": "~0.3",
 		"mockery/mockery": "0.9.1"
 	},
 	"minimum-stability": "dev"
