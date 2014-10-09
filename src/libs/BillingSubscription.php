@@ -82,7 +82,7 @@ class BillingSubscription
     }
 
     /**
-     * Changes the subscription plan
+     * Changes the plan the member is subscribed to
      *
      * @param string  $plan    stripe plan id
      * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
@@ -91,7 +91,9 @@ class BillingSubscription
      */
     public function change($plan, $noTrial = false)
     {
-        if (empty($plan) || !$this->active() || $this->model->not_charged)
+        if (empty($plan) || !in_array($this->status(), ['active','trialing','past_due','unpaid'])
+            || $this->model->not_charged)
+
             return false;
 
         $customer = $this->model->stripeCustomer();
@@ -171,10 +173,10 @@ class BillingSubscription
     }
 
     /**
-	 * Gets the status of the subscription
-	 *
-	 * @return string one of not_subscribed, trialing, active, past_due, canceled, or unpaid
-	 */
+     * Gets the status of the subscription
+     *
+     * @return string one of not_subscribed, trialing, active, past_due, canceled, or unpaid
+     */
     public function status()
     {
         if ($this->model->canceled)
