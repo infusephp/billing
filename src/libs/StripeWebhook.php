@@ -100,43 +100,43 @@ class StripeWebhook
     /**
      * Handles failed charge events
      *
-     * @param object $event
+     * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function chargeFailed(\stdClass $event, $member)
+    public function chargeFailed($eventData, $member)
     {
         // add to billing history
-        $description = $event->description;
+        $description = $eventData->description;
 
-        if (empty($event->description) && $member->hasProperty('plan'))
+        if (empty($eventData->description) && $member->hasProperty('plan'))
             $description = $member->plan;
 
         $history = new BillingHistory();
         $history->create([
             'uid' => $member->id(),
-            'payment_time' => $event->created,
-            'amount' => $event->amount / 100,
-            'stripe_customer' => $event->customer,
-            'stripe_transaction' => $event->id,
+            'payment_time' => $eventData->created,
+            'amount' => $eventData->amount / 100,
+            'stripe_customer' => $eventData->customer,
+            'stripe_transaction' => $eventData->id,
             'description' => $description,
             'success' => '0',
-            'error' => $event->failure_message ]);
+            'error' => $eventData->failure_message ]);
 
         // email member about the failure
         if ($this->app['config']->get('billing.emails.failed_payment')) {
             $member->sendEmail(
                 'payment-problem', [
                     'subject' => 'Declined charge for ' . $this->app['config']->get('site.title'),
-                    'timestamp' => $event->created,
-                    'payment_time' => date('F j, Y g:i a T', $event->created),
-                    'amount' => number_format($event->amount / 100, 2),
+                    'timestamp' => $eventData->created,
+                    'payment_time' => date('F j, Y g:i a T', $eventData->created),
+                    'amount' => number_format($eventData->amount / 100, 2),
                     'description' => $description,
-                    'card_last4' => $event->card->last4,
-                    'card_expires' => $event->card->exp_month . '/' . $event->card->exp_year,
-                    'card_type' => $event->card->brand,
-                    'error_message' => $event->failure_message ]);
+                    'card_last4' => $eventData->card->last4,
+                    'card_expires' => $eventData->card->exp_month . '/' . $eventData->card->exp_year,
+                    'card_type' => $eventData->card->brand,
+                    'error_message' => $eventData->failure_message ]);
         }
 
         return true;
@@ -145,26 +145,26 @@ class StripeWebhook
     /**
      * Handles succeeded charge events
      *
-     * @param object $event
+     * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function chargeSucceeded(\stdClass $event, $member)
+    public function chargeSucceeded($eventData, $member)
     {
         // add to billing history
-        $description = $event->description;
+        $description = $eventData->description;
 
-        if (empty($event->description) && $member->hasProperty('plan'))
+        if (empty($eventData->description) && $member->hasProperty('plan'))
             $description = $member->plan;
 
         $history = new BillingHistory();
         $history->create([
             'uid' => $member->id(),
-            'payment_time' => $event->created,
-            'amount' => $event->amount / 100,
-            'stripe_customer' => $event->customer,
-            'stripe_transaction' => $event->id,
+            'payment_time' => $eventData->created,
+            'amount' => $eventData->amount / 100,
+            'stripe_customer' => $eventData->customer,
+            'stripe_transaction' => $eventData->id,
             'description' => $description,
             'success' => true ]);
 
@@ -173,13 +173,13 @@ class StripeWebhook
             $member->sendEmail(
                 'payment-received', [
                     'subject' => 'Payment receipt on ' . $this->app['config']->get('site.title'),
-                    'timestamp' => $event->created,
-                    'payment_time' => date('F j, Y g:i a T', $event->created),
-                    'amount' => number_format($event->amount / 100, 2),
+                    'timestamp' => $eventData->created,
+                    'payment_time' => date('F j, Y g:i a T', $eventData->created),
+                    'amount' => number_format($eventData->amount / 100, 2),
                     'description' => $description,
-                    'card_last4' => $event->card->last4,
-                    'card_expires' => $event->card->exp_month . '/' . $event->card->exp_year,
-                    'card_type' => $event->card->brand ]);
+                    'card_last4' => $eventData->card->last4,
+                    'card_expires' => $eventData->card->exp_month . '/' . $eventData->card->exp_year,
+                    'card_type' => $eventData->card->brand ]);
         }
 
         return true;
@@ -188,15 +188,15 @@ class StripeWebhook
     /**
      * Handles created/updated subscription events
      *
-     * @param object $event
+     * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function updatedSubscription(\stdClass $event, $member)
+    public function updatedSubscription($eventData, $member)
     {
         // get the customer information
-        $customer = Stripe_Customer::retrieve($event->customer, $this->apiKey);
+        $customer = Stripe_Customer::retrieve($eventData->customer, $this->apiKey);
 
         // we only use the 1st subscription
         $subscription = reset($customer->subscriptions->data);
@@ -222,12 +222,12 @@ class StripeWebhook
     /**
      * Handles canceled subscription events
      *
-     * @param object $event
+     * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function canceledSubscription(\stdClass $event, $member)
+    public function canceledSubscription($eventData, $member)
     {
         $member->set('canceled', true);
 
@@ -243,12 +243,12 @@ class StripeWebhook
     /**
      * Handles trial ends soon events
      *
-     * @param object $event
+     * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function trialWillEnd(\stdClass $event, $member)
+    public function trialWillEnd($eventData, $member)
     {
         if ($this->app['config']->get('billing.emails.trial_will_end')) {
             $member->sendEmail(
