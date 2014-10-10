@@ -5,8 +5,16 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
     public static function setUpBeforeClass()
     {
         require_once 'TestBillingModel.php';
+    }
 
-        TestBootstrap::app('config')->set('stripe.secret','apiKey');
+    public function testCreate()
+    {
+        $this->markTestIncomplete();
+    }
+
+    public function testSet()
+    {
+        $this->markTestIncomplete();
     }
 
     public function testStripeCustomerRetrieve()

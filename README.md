@@ -15,8 +15,12 @@ Stripe billing module for Idealist Framework
 ```php
 [
 	'model' => '\\app\\users\\models\\User',
-	'sendFailedPaymentNotices' => true,
-	'sendPaymentReceipts' => false,
+	'emails' => [
+		'failed_payment' => true,
+		'payment_receipt' => true,
+		'trial_ended' => true,
+		'trial_will_end' => true
+	],
 	'defaultPlan' => 'default_plan',
 	'plans' => [
 		...

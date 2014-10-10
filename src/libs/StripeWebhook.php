@@ -8,15 +8,36 @@ use Stripe_Event;
 use App;
 use app\billing\models\BillingHistory;
 
+define('ERROR_INVALID_EVENT', 'invalid_event');
+define('ERROR_LIVEMODE_MISMATCH', 'livemode_mismatch');
+define('ERROR_STRIPE_CONNECT_EVENT', 'stripe_connect_event');
+define('ERROR_EVENT_NOT_SUPPORTED', 'event_not_supported');
+define('ERROR_CUSTOMER_NOT_FOUND', 'customer_not_found');
+
 class StripeWebhook
 {
     private $event;
     private $app;
+    private $apiKey;
+
+    private static $eventHandlers = [
+        // charges
+        'charge.failed' => 'chargeFailedHandler',
+        'charge.succeeded' => 'chargeSucceededHandler',
+        // subscription updated
+        'customer.subscription.created' => 'updatedSubscriptionHandler',
+        'invoice.payment_succeeded' => 'updatedSubscriptionHandler',
+        'customer.subscription.updated' => 'updatedSubscriptionHandler',
+        'customer.subscription.deleted' => 'updatedSubscriptionHandler',
+        // trials
+        'customer.subscription.trial_will_end' => 'trialWillEnd'
+    ];
 
     public function __construct(array $event, App $app)
     {
         $this->event = $event;
         $this->app = $app;
+        $this->apiKey = $this->app[ 'config' ]->get('stripe.secret');
     }
 
     /**
@@ -30,158 +51,195 @@ class StripeWebhook
     public function process()
     {
         if ( !isset($this->event['id'])) {
-            return 'invalid event';
+            return ERROR_INVALID_EVENT;
         }
 
         // check that the livemode matches our development state
-        if ( !($this->event[ 'livemode' ] && $this->app[ 'config' ]->get( 'site.production-level' ) || !$this->event[ 'livemode' ] && !$this->app[ 'config' ]->get( 'site.production-level' ) ) ) {
-            return 'livemode mismatch';
+        if (!($this->event['livemode'] && $this->app['config']->get('site.production-level') ||
+            !$this->event['livemode'] && !$this->app['config']->get('site.production-level'))) {
+            return ERROR_LIVEMODE_MISMATCH;
         }
 
         if (isset($this->event['user_id'])) {
-            return 'stripe connect event';
+            return ERROR_STRIPE_CONNECT_EVENT;
         }
-
-        $apiKey = $this->app[ 'config' ]->get( 'stripe.secret' );
 
         try {
             // retreive the event, unless it is a deauth event
             // since those cannot be retrieved
-            $validatedEvent = ($this->event[ 'type' ] == 'account.application.deauthorized') ?
+            $validatedEvent = ($this->event['type'] == 'account.application.deauthorized') ?
                 (object) $this->event :
-                Stripe_Event::retrieve( $this->event[ 'id' ], $apiKey );
+                Stripe_Event::retrieve($this->event['id'], $this->apiKey);
 
-            return $this->webhook($validatedEvent, $apiKey);
+            $type = $validatedEvent->type;
+            if (!isset(self::$eventHandlers[$type]))
+                return ERROR_EVENT_NOT_SUPPORTED;
+
+            // get the data attached to the event
+            $eventData = $event->data->object;
+
+            // find out which user this event is for by cross-referencing the customer id
+            $modelClass = $this->app['config']->get('billing.model');
+
+            $member = $modelClass::findOne([
+                'where' => [
+                    'stripe_customer' => $eventData->customer ]]);
+
+            if (!$member)
+                return ERROR_CUSTOMER_NOT_FOUND;
+
+            $handler = self::$eventHandlers[$type];
+            if ($this->$handler($eventData, $member))
+                return 'ok';
         } catch ( \Exception $e ) {
             return $e->getMessage();
         }
     }
 
-    private function webhook($event, $apiKey)
+    /**
+     * Handles failed charge events
+     *
+     * @param object $event
+     * @param object $member
+     *
+     * @return boolean
+     */
+    public function chargeFailedHandler(\stdClass $event, $member)
     {
-        if( !in_array( $event->type, [
-            'charge.failed',
-            'charge.succeeded',
-            'customer.subscription.updated',
-            'customer.subscription.deleted',
-            'customer.subscription.created',
-            'invoice.payment_succeeded' ] ) )
-        {
-            return 'event not supported';
+        // add to billing history
+        $description = $event->description;
+
+        if (empty($event->description) && $member->hasProperty('plan'))
+            $description = $member->plan;
+
+        $history = new BillingHistory();
+        $history->create([
+            'uid' => $member->id(),
+            'payment_time' => $event->created,
+            'amount' => $event->amount / 100,
+            'stripe_customer' => $event->customer,
+            'stripe_transaction' => $event->id,
+            'description' => $description,
+            'success' => '0',
+            'error' => $event->failure_message ]);
+
+        // email member about the failure
+        if ($this->app['config']->get('billing.emails.failed_payment')) {
+            $member->sendEmail(
+                'payment-problem', [
+                    'subject' => 'Declined charge for ' . $this->app['config']->get('site.title'),
+                    'timestamp' => $event->created,
+                    'payment_time' => date('F j, Y g:i a T', $event->created),
+                    'amount' => number_format($event->amount / 100, 2),
+                    'description' => $description,
+                    'card_last4' => $event->card->last4,
+                    'card_expires' => $event->card->exp_month . '/' . $event->card->exp_year,
+                    'card_type' => $event->card->brand,
+                    'error_message' => $event->failure_message ]);
         }
 
-        // get the data attached to the event
-        $eventData = $event->data->object;
+        return true;
+    }
 
-        // find out which user this event is for by cross-referencing the customer id
-        $modelClass = $this->app[ 'config' ]->get( 'billing.model' );
+    /**
+     * Handles succeeded charge events
+     *
+     * @param object $event
+     * @param object $member
+     *
+     * @return boolean
+     */
+    public function chargeSucceededHandler(\stdClass $event, $member)
+    {
+        // add to billing history
+        $description = $event->description;
 
-        $member = $modelClass::findOne( [
-            'where' => [
-                'stripe_customer' => $eventData->customer ] ] );
+        if (empty($event->description) && $member->hasProperty('plan'))
+            $description = $member->plan;
 
-        if( !$member )
+        $history = new BillingHistory();
+        $history->create([
+            'uid' => $member->id(),
+            'payment_time' => $event->created,
+            'amount' => $event->amount / 100,
+            'stripe_customer' => $event->customer,
+            'stripe_transaction' => $event->id,
+            'description' => $description,
+            'success' => true ]);
 
-            return 'customer not found';
+        // email member with a receipt
+        if ($this->app['config']->get('billing.emails.payment_receipt')) {
+            $member->sendEmail(
+                'payment-received', [
+                    'subject' => 'Payment receipt on ' . $this->app['config']->get('site.title'),
+                    'timestamp' => $event->created,
+                    'payment_time' => date('F j, Y g:i a T', $event->created),
+                    'amount' => number_format($event->amount / 100, 2),
+                    'description' => $description,
+                    'card_last4' => $event->card->last4,
+                    'card_expires' => $event->card->exp_month . '/' . $event->card->exp_year,
+                    'card_type' => $event->card->brand ]);
+        }
 
-        if ( in_array( $event->type, [ 'charge.failed', 'charge.succeeded' ] ) ) {
-            $description = ($member->hasProperty('plan') && empty($eventData->description)) ?
-                $member->plan : $eventData->description;
+        return true;
+    }
 
-            // prepare to record the charge
-            $historyData = [
-                'payment_time' => $eventData->created,
-                'amount' => $eventData->amount / 100,
-                'stripe_customer' => $eventData->customer,
-                'description' => $description,
-                'stripe_transaction' => $eventData->id,
-                'uid' => $member->id() ];
+    /**
+     * Handles subscription-related events
+     *
+     * @param object $event
+     * @param object $member
+     *
+     * @return boolean
+     */
+    public function updatedSubscriptionHandler(\stdClass $event, $member)
+    {
+        // get the customer information
+        $customer = Stripe_Customer::retrieve($event->customer, $this->apiKey);
 
-            $emailTemplate = false;
-            $subject = '';
+        $update = [];
 
-            if ($event->type == 'charge.failed') {
-                 // add to billing history
-                $historyData[ 'success' ] = 0;
-                $historyData[ 'error' ] = $eventData->failure_message;
-                $history = new BillingHistory();
-                $history->create( $historyData );
+        if( $event->type == 'customer.subscription.deleted' )
+            $update[ 'canceled' ] = true;
 
-                 // e-mail user(s) about the failure
-                if ($this->app['config']->get('billing.sendFailedPaymentNotices')) {
-                    $emailTemplate = 'payment-problem';
-                    $subject = 'Declined payment for ' . $this->app['config']->get( 'site.title' );
-                }
-            } elseif ($event->type == 'charge.succeeded') {
-                $historyData[ 'success' ] = 1;
+        if (is_array($customer->subscriptions->data)) {
+            // we only use the 1st subscription
+            if ( count( $customer->subscriptions->data ) > 0 ) {
+                $subscription = $customer->subscriptions->data[ 0 ];
 
-                // e-mail user(s) with a receipt
-                if ($this->app['config']->get('billing.sendPaymentReceipts')) {
-                    $emailTemplate = 'payment-received';
-                    $subject = 'Received payment for ' . $this->app['config']->get( 'site.title' );
-                }
-            }
+                if ( is_object( $subscription ) ) {
+                    $update = [
+                        'past_due' => $subscription->status == 'past_due',
+                        'trial_ends' => $subscription->trial_end ];
 
-            // add to billing history
-            $history = new BillingHistory();
-            $history->create( $historyData );
+                    if (in_array($subscription->status, ['trialing','active','past_due']))
+                        $update['renews_next'] = $subscription->current_period_end;
 
-            if ($emailTemplate) {
-                $member->sendEmail(
-                    $emailTemplate,
-                    [
-                        'subject' => $subject,
-                        'timestamp' => $eventData->created,
-                        'payment_time' => date( 'F j, Y g:i a T', $eventData->created ),
-                        'amount' => number_format( $eventData->amount / 100, 2 ),
-                        'description' => $description,
-                        'card_last4' => $eventData->card->last4,
-                        'card_expires' => $eventData->card->exp_month . '/' . $eventData->card->exp_year,
-                        'card_type' => $eventData->card->brand,
-                        'error_message' => $eventData->failure_message ] );
-            }
-        } elseif( in_array( $event->type, [
-            'invoice.payment_succeeded',
-            'customer.subscription.updated',
-            'customer.subscription.deleted',
-            'customer.subscription.created' ] ) )
-        {
-            // get the customer information
-            $customer = Stripe_Customer::retrieve( $eventData->customer, $apiKey );
-
-            $update = [];
-
-            if( $event->type == 'customer.subscription.deleted' )
-                $update[ 'canceled' ] = true;
-
-            if (is_array($customer->subscriptions->data)) {
-                // we only use the 1st subscription
-                if ( count( $customer->subscriptions->data ) > 0 ) {
-                    $subscription = $customer->subscriptions->data[ 0 ];
-
-                    if ( is_object( $subscription ) ) {
-                        $update = [
-                            'past_due' => $subscription->status == 'past_due',
-                            'trial_ends' => $subscription->trial_end ];
-
-                        if (in_array($subscription->status, ['trialing','active','past_due']))
-                            $update['renews_next'] = $subscription->current_period_end;
-
-                        if ($subscription->status == 'canceled') {
-                            $update['canceled'] = true;
-                            $update['canceled_at'] = $subscription->canceled_at;
-                        }
+                    if ($subscription->status == 'canceled') {
+                        $update['canceled'] = true;
+                        $update['canceled_at'] = $subscription->canceled_at;
                     }
                 }
-                // member has canceled
-                else
-                    $update['canceled'] = true;
             }
-
-             // update subscription information on member
-             $member->set($update);
+            // member has canceled
+            else
+                $update['canceled'] = true;
         }
 
-        return 'ok';
+        // update subscription information on member
+        $member->set($update);
+
+        return true;
+    }
+
+    public function trialWillEnd(\stdClass $event, $member)
+    {
+        if ($this->app['config']->get('billing.emails.trial_will_end')) {
+            $member->sendEmail(
+                'trial-will-end', [
+                    'subject' => 'Your trial ends soon on ' . $this->app['config']->get('site.title') ]);
+        }
+
+        return true;
     }
 }

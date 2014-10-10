@@ -4,7 +4,8 @@
 
 return  [
   'site' => [
-    'salt' => 'replacewithrandomstring',
+    'title' => 'Test Site',
+    'salt' => 'replacewithrandomstring'
   ],
   'modules' => [
     'middleware' => [
@@ -22,5 +23,16 @@ return  [
     'enabled' => true,
     'adapter' => 'database',
     'lifetime' => 86400
+  ],
+  'stripe' => [
+    'secret' => 'apiKey'
+  ],
+  'billing' => [
+    'emails' => [
+      'failed_payment' => true,
+      'payment_receipt' => true,
+      'trial_ended' => true,
+      'trial_will_end' => true
+    ]
   ]
 ];
