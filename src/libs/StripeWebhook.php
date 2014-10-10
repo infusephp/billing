@@ -199,7 +199,7 @@ class StripeWebhook
         $customer = Stripe_Customer::retrieve($eventData->customer, $this->apiKey);
 
         // we only use the 1st subscription
-        $subscription = reset($customer->subscriptions->data);
+        $subscription = $customer->subscriptions->data[0];
 
         $update = [
             'past_due' => $subscription->status == 'past_due',
