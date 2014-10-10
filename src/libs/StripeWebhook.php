@@ -22,15 +22,13 @@ class StripeWebhook
     private $apiKey;
 
     private static $eventHandlers = [
-        // charges
-        'charge.failed' => 'chargeFailedHandler',
-        'charge.succeeded' => 'chargeSucceededHandler',
-        // subscription updated
-        'customer.subscription.created' => 'updatedSubscriptionHandler',
-        'invoice.payment_succeeded' => 'updatedSubscriptionHandler',
-        'customer.subscription.updated' => 'updatedSubscriptionHandler',
-        'customer.subscription.deleted' => 'updatedSubscriptionHandler',
-        // trials
+        'charge.failed' => 'chargeFailed',
+        'charge.succeeded' => 'chargeSucceeded',
+        'customer.subscription.created' => 'updatedSubscription',
+        'invoice.payment_succeeded' => 'updatedSubscription',
+        'customer.subscription.created' => 'updatedSubscription',
+        'customer.subscription.updated' => 'updatedSubscription',
+        'customer.subscription.deleted' => 'canceledSubscription',
         'customer.subscription.trial_will_end' => 'trialWillEnd'
     ];
 
@@ -107,7 +105,7 @@ class StripeWebhook
      *
      * @return boolean
      */
-    public function chargeFailedHandler(\stdClass $event, $member)
+    public function chargeFailed(\stdClass $event, $member)
     {
         // add to billing history
         $description = $event->description;
@@ -152,7 +150,7 @@ class StripeWebhook
      *
      * @return boolean
      */
-    public function chargeSucceededHandler(\stdClass $event, $member)
+    public function chargeSucceeded(\stdClass $event, $member)
     {
         // add to billing history
         $description = $event->description;
@@ -188,49 +186,56 @@ class StripeWebhook
     }
 
     /**
-     * Handles subscription-related events
+     * Handles created/updated subscription events
      *
      * @param object $event
      * @param object $member
      *
      * @return boolean
      */
-    public function updatedSubscriptionHandler(\stdClass $event, $member)
+    public function updatedSubscription(\stdClass $event, $member)
     {
         // get the customer information
         $customer = Stripe_Customer::retrieve($event->customer, $this->apiKey);
 
-        $update = [];
+        // we only use the 1st subscription
+        $subscription = reset($customer->subscriptions->data);
 
-        if( $event->type == 'customer.subscription.deleted' )
-            $update[ 'canceled' ] = true;
+        $update = [
+            'past_due' => $subscription->status == 'past_due',
+            'trial_ends' => $subscription->trial_end ];
 
-        if (is_array($customer->subscriptions->data)) {
-            // we only use the 1st subscription
-            if ( count( $customer->subscriptions->data ) > 0 ) {
-                $subscription = $customer->subscriptions->data[ 0 ];
+        if (in_array($subscription->status, ['trialing','active','past_due']))
+            $update['renews_next'] = $subscription->current_period_end;
 
-                if ( is_object( $subscription ) ) {
-                    $update = [
-                        'past_due' => $subscription->status == 'past_due',
-                        'trial_ends' => $subscription->trial_end ];
+        $member->set($update);
 
-                    if (in_array($subscription->status, ['trialing','active','past_due']))
-                        $update['renews_next'] = $subscription->current_period_end;
-
-                    if ($subscription->status == 'canceled') {
-                        $update['canceled'] = true;
-                        $update['canceled_at'] = $subscription->canceled_at;
-                    }
-                }
-            }
-            // member has canceled
-            else
-                $update['canceled'] = true;
+        if ($subscription->status == 'unpaid' && $this->app['config']->get('billing.emails.trial_ended')) {
+            $member->sendEmail(
+                'trial-ended', [
+                    'subject' => 'Your ' . $this->app['config']->get('site.title') . ' trial has ended' ]);
         }
 
-        // update subscription information on member
-        $member->set($update);
+        return true;
+    }
+
+    /**
+     * Handles canceled subscription events
+     *
+     * @param object $event
+     * @param object $member
+     *
+     * @return boolean
+     */
+    public function canceledSubscription(\stdClass $event, $member)
+    {
+        $member->set('canceled', true);
+
+        if ($this->app['config']->get('billing.emails.subscription_canceled')) {
+            $member->sendEmail(
+                'subscription-canceled', [
+                    'subject' => 'Your subscription to ' . $this->app['config']->get('site.title') . ' has been canceled' ]);
+        }
 
         return true;
     }

@@ -137,7 +137,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
             'error_message' => 'Fail!' ];
         $member->shouldReceive('sendEmail')->withArgs(['payment-problem', $email])->once();
 
-        $this->assertTrue($webhook->chargeFailedHandler($event, $member));
+        $this->assertTrue($webhook->chargeFailed($event, $member));
 
         $history = BillingHistory::findOne(['where' => ['stripe_transaction' => 'charge_failed']]);
         $this->assertInstanceOf('\\app\\billing\\models\\BillingHistory', $history);
@@ -184,7 +184,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
             'card_type' => 'Visa' ];
         $member->shouldReceive('sendEmail')->withArgs(['payment-received', $email])->once();
 
-        $this->assertTrue($webhook->chargeSucceededHandler($event, $member));
+        $this->assertTrue($webhook->chargeSucceeded($event, $member));
 
         $history = BillingHistory::findOne(['where' => ['stripe_transaction' => 'charge_succeeded']]);
         $this->assertInstanceOf('\\app\\billing\\models\\BillingHistory', $history);
@@ -201,24 +201,104 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $history->toArray(['id']));
     }
 
-    public function testPaymentSucceeded()
-    {
-        $this->markTestIncomplete();
-    }
-
     public function testSubscriptionCreated()
     {
-        $this->markTestIncomplete();
+        $sub = new stdClass();
+        $sub->status = 'trialing';
+        $sub->trial_end = 100;
+        $sub->current_period_end = 101;
+
+        $customer = new stdClass();
+        $customer->subscriptions = new stdClass();
+        $customer->subscriptions->data = [$sub];
+
+        $staticCustomer = Mockery::mock('alias:Stripe_Customer');
+        $staticCustomer->shouldReceive('retrieve')->withArgs(['cus_test', 'apiKey'])->andReturn($customer);
+
+        $event = new stdClass();
+        $event->customer = 'cus_test';
+
+        $webhook = new StripeWebhook([], TestBootstrap::app());
+
+        $member = Mockery::mock();
+        $member->shouldReceive('set')->withArgs([[
+            'past_due' => false,
+            'trial_ends' => 100,
+            'renews_next' => 101 ]]);
+
+        $this->assertTrue($webhook->updatedSubscription($event, $member));
     }
 
-    public function testSubscriptionUpdated()
+    public function testSubscriptionUnpaid()
     {
-        $this->markTestIncomplete();
+        $sub = new stdClass();
+        $sub->status = 'unpaid';
+        $sub->trial_end = 100;
+
+        $customer = new stdClass();
+        $customer->subscriptions = new stdClass();
+        $customer->subscriptions->data = [$sub];
+
+        $staticCustomer = Mockery::mock('alias:Stripe_Customer');
+        $staticCustomer->shouldReceive('retrieve')->withArgs(['cus_test', 'apiKey'])->andReturn($customer);
+
+        $event = new stdClass();
+        $event->customer = 'cus_test';
+
+        $webhook = new StripeWebhook([], TestBootstrap::app());
+
+        $member = Mockery::mock();
+        $member->shouldReceive('set')->withArgs([[
+            'past_due' => false,
+            'trial_ends' => 100 ]]);
+        $email = [
+            'subject' => 'Your Test Site trial has ended' ];
+        $member->shouldReceive('sendEmail')->withArgs(['trial-ended', $email])->once();
+
+        $this->assertTrue($webhook->updatedSubscription($event, $member));
     }
 
-    public function testSubscriptionDeleted()
+    public function testSubscriptionPastDue()
     {
-        $this->markTestIncomplete();
+        $sub = new stdClass();
+        $sub->status = 'past_due';
+        $sub->trial_end = 100;
+        $sub->current_period_end = 101;
+
+        $customer = new stdClass();
+        $customer->subscriptions = new stdClass();
+        $customer->subscriptions->data = [$sub];
+
+        $staticCustomer = Mockery::mock('alias:Stripe_Customer');
+        $staticCustomer->shouldReceive('retrieve')->withArgs(['cus_test', 'apiKey'])->andReturn($customer);
+
+        $event = new stdClass();
+        $event->customer = 'cus_test';
+
+        $webhook = new StripeWebhook([], TestBootstrap::app());
+
+        $member = Mockery::mock();
+        $member->shouldReceive('set')->withArgs([[
+            'past_due' => true,
+            'trial_ends' => 100,
+            'renews_next' => 101 ]]);
+
+        $this->assertTrue($webhook->updatedSubscription($event, $member));
+    }
+
+    public function testSubscriptionCanceled()
+    {
+        $event = new stdClass();
+
+        $webhook = new StripeWebhook([], TestBootstrap::app());
+
+        $member = Mockery::mock();
+        $member->shouldReceive('set')->withArgs(['canceled', true]);
+        $email = [
+            'subject' => 'Your subscription to Test Site has been canceled' ];
+        $member->shouldReceive('sendEmail')->withArgs(['subscription-canceled', $email])->once();
+
+        $this->assertTrue($webhook->canceledSubscription($event, $member));
     }
 
     public function testTrialWillEnd()

@@ -31,6 +31,7 @@ return  [
     'emails' => [
       'failed_payment' => true,
       'payment_receipt' => true,
+      'subscription_canceled' => true,
       'trial_ended' => true,
       'trial_will_end' => true
     ],
