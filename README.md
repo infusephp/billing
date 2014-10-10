@@ -19,7 +19,8 @@ Stripe billing module for Idealist Framework
 		'failed_payment' => true,
 		'payment_receipt' => true,
 		'trial_ended' => true,
-		'trial_will_end' => true
+		'trial_will_end' => true,
+		'subscription_canceled' => true
 	],
 	'defaultPlan' => 'default_plan',
 	'plans' => [
