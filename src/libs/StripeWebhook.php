@@ -13,6 +13,7 @@ define('ERROR_LIVEMODE_MISMATCH', 'livemode_mismatch');
 define('ERROR_STRIPE_CONNECT_EVENT', 'stripe_connect_event');
 define('ERROR_EVENT_NOT_SUPPORTED', 'event_not_supported');
 define('ERROR_CUSTOMER_NOT_FOUND', 'customer_not_found');
+define('STRIPE_WEBHOOK_SUCCESS', 'OK');
 
 class StripeWebhook
 {
@@ -76,7 +77,7 @@ class StripeWebhook
                 return ERROR_EVENT_NOT_SUPPORTED;
 
             // get the data attached to the event
-            $eventData = $event->data->object;
+            $eventData = $validatedEvent->data->object;
 
             // find out which user this event is for by cross-referencing the customer id
             $modelClass = $this->app['config']->get('billing.model');
@@ -90,10 +91,12 @@ class StripeWebhook
 
             $handler = self::$eventHandlers[$type];
             if ($this->$handler($eventData, $member))
-                return 'ok';
+                return STRIPE_WEBHOOK_SUCCESS;
         } catch ( \Exception $e ) {
-            return $e->getMessage();
+            $this->app['logger']->error($e);
         }
+
+        return 'error';
     }
 
     /**
@@ -232,6 +235,14 @@ class StripeWebhook
         return true;
     }
 
+    /**
+     * Handles trial ends soon events
+     *
+     * @param object $event
+     * @param object $member
+     *
+     * @return boolean
+     */
     public function trialWillEnd(\stdClass $event, $member)
     {
         if ($this->app['config']->get('billing.emails.trial_will_end')) {

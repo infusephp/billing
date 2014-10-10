@@ -24,9 +24,85 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         TestBootstrap::app('user')->disableSU();
     }
 
+    public function testProcessFail()
+    {
+        $app = TestBootstrap::app();
+
+        $webhook = new StripeWebhook([], $app);
+        $this->assertEquals(ERROR_INVALID_EVENT, $webhook->process());
+
+        $event = [
+            'id' => 'evt_test',
+            'livemode' => true ];
+        $webhook = new StripeWebhook($event, $app);
+        $this->assertEquals(ERROR_LIVEMODE_MISMATCH, $webhook->process());
+
+        $event = [
+            'id' => 'evt_test',
+            'livemode' => false,
+            'user_id' => 'usr_1234' ];
+        $webhook = new StripeWebhook($event, $app);
+        $this->assertEquals(ERROR_STRIPE_CONNECT_EVENT, $webhook->process());
+
+        $event = [
+            'id' => 'evt_test',
+            'livemode' => false,
+            'type' => 'account.application.deauthorized' ];
+        $webhook = new StripeWebhook($event, $app);
+        $this->assertEquals(ERROR_EVENT_NOT_SUPPORTED, $webhook->process());
+
+        $staticEvent = Mockery::mock('alias:Stripe_Event');
+        $e = new Exception();
+        $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test', 'apiKey'])->andThrow(new Exception());
+
+        $event = [
+            'id' => 'evt_test',
+            'livemode' => false,
+            'type' => 'customer.subscription.trial_will_end' ];
+        $webhook = new StripeWebhook($event, $app);
+        $this->assertEquals('error', $webhook->process());
+
+        $validatedEvent = new stdClass();
+        $validatedEvent->type = 'customer.subscription.trial_will_end';
+        $validatedEvent->data = new stdClass();
+        $validatedEvent->data->object = new stdClass();
+        $validatedEvent->data->object->customer = 'cus_test';
+        $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test2', 'apiKey'])->andReturn($validatedEvent);
+
+        $event = [
+            'id' => 'evt_test2',
+            'livemode' => false,
+            'type' => 'customer.subscription.trial_will_end' ];
+        $webhook = new StripeWebhook($event, $app);
+        $this->assertEquals(ERROR_CUSTOMER_NOT_FOUND, $webhook->process());
+    }
+
     public function testProcess()
     {
-        $this->markTestIncomplete();
+        $app = TestBootstrap::app();
+
+        $validatedEvent = new stdClass();
+        $validatedEvent->type = 'customer.subscription.trial_will_end';
+        $validatedEvent->data = new stdClass();
+        $validatedEvent->data->object = new stdClass();
+        $validatedEvent->data->object->customer = 'cus_test';
+        $staticEvent = Mockery::mock('alias:Stripe_Event');
+        $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test', 'apiKey'])->andReturn($validatedEvent);
+
+        $model = Mockery::mock();
+        $model->shouldReceive('sendEmail')->once();
+
+        $app['config']->set('billing.model', 'TestBillingModel2');
+        $staticModel = Mockery::mock('alias:TestBillingModel2');
+        $staticModel->shouldReceive('findOne')->andReturn($model);
+
+        $event = [
+            'id' => 'evt_test',
+            'livemode' => false,
+            'type' => 'customer.subscription.trial_will_end' ];
+        $webhook = new StripeWebhook($event, $app);
+
+        $this->assertEquals(STRIPE_WEBHOOK_SUCCESS, $webhook->process());
     }
 
     public function testChargeFailed()

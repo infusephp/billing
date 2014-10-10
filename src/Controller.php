@@ -21,7 +21,7 @@ class Controller
 
     public function webhook($req, $res)
     {
-        $this->app[ 'user' ]->enableSU();
+        $this->app['user']->enableSU();
 
         $webhook = new StripeWebhook($req->request(), $this->app);
         $res->setBody($webhook->process());

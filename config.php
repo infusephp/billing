@@ -33,6 +33,7 @@ return  [
       'payment_receipt' => true,
       'trial_ended' => true,
       'trial_will_end' => true
-    ]
+    ],
+    'model' => 'TestBillingModel'
   ]
 ];
