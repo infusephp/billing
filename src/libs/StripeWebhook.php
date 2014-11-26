@@ -84,6 +84,8 @@ class StripeWebhook
             // once infuse/libs is updated beyond v0.3.0.
             // It's only used to get the tests to pass because
             // the test model's table does not exist
+            $member = false;
+
             try {
                 $member = $modelClass::findOne([
                     'where' => [
