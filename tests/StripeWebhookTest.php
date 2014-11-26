@@ -1,7 +1,5 @@
 <?php
 
-use infuse\Database;
-
 use app\billing\libs\StripeWebhook;
 use app\billing\models\BillingHistory;
 
@@ -11,7 +9,8 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
     {
         require_once 'TestBillingModel.php';
 
-        Database::delete('BillingHistories', ['stripe_transaction' => 'charge_failed']);
+        TestBootstrap::app('db')->delete('BillingHistories')
+            ->where('stripe_transaction', 'charge_failed')->execute();
     }
 
     public function setUp()
