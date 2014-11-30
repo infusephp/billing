@@ -32,21 +32,21 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
 
         $event = [
             'id' => 'evt_test',
-            'livemode' => true ];
+            'livemode' => true, ];
         $webhook = new StripeWebhook($event, $app);
         $this->assertEquals(ERROR_LIVEMODE_MISMATCH, $webhook->process());
 
         $event = [
             'id' => 'evt_test',
             'livemode' => false,
-            'user_id' => 'usr_1234' ];
+            'user_id' => 'usr_1234', ];
         $webhook = new StripeWebhook($event, $app);
         $this->assertEquals(ERROR_STRIPE_CONNECT_EVENT, $webhook->process());
 
         $event = [
             'id' => 'evt_test',
             'livemode' => false,
-            'type' => 'account.application.deauthorized' ];
+            'type' => 'account.application.deauthorized', ];
         $webhook = new StripeWebhook($event, $app);
         $this->assertEquals(ERROR_EVENT_NOT_SUPPORTED, $webhook->process());
 
@@ -57,7 +57,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $event = [
             'id' => 'evt_test',
             'livemode' => false,
-            'type' => 'customer.subscription.trial_will_end' ];
+            'type' => 'customer.subscription.trial_will_end', ];
         $webhook = new StripeWebhook($event, $app);
         $this->assertEquals('error', $webhook->process());
 
@@ -71,7 +71,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $event = [
             'id' => 'evt_test2',
             'livemode' => false,
-            'type' => 'customer.subscription.trial_will_end' ];
+            'type' => 'customer.subscription.trial_will_end', ];
         $webhook = new StripeWebhook($event, $app);
         $this->assertEquals(ERROR_CUSTOMER_NOT_FOUND, $webhook->process());
     }
@@ -98,7 +98,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $event = [
             'id' => 'evt_test',
             'livemode' => false,
-            'type' => 'customer.subscription.trial_will_end' ];
+            'type' => 'customer.subscription.trial_will_end', ];
         $webhook = new StripeWebhook($event, $app);
 
         $this->assertEquals(STRIPE_WEBHOOK_SUCCESS, $webhook->process());
@@ -133,7 +133,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
             'card_last4' => '1234',
             'card_expires' => '05/2014',
             'card_type' => 'Visa',
-            'error_message' => 'Fail!' ];
+            'error_message' => 'Fail!', ];
         $member->shouldReceive('sendEmail')->withArgs(['payment-problem', $email])->once();
 
         $this->assertTrue($webhook->chargeFailed($event, $member));
@@ -149,7 +149,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
             'stripe_transaction' => 'charge_failed',
             'description' => 'Descr',
             'success' => false,
-            'error' => 'Fail!' ];
+            'error' => 'Fail!', ];
         $this->assertEquals($expected, $history->toArray(['id']));
     }
 
@@ -180,7 +180,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
             'description' => 'Descr',
             'card_last4' => '1234',
             'card_expires' => '05/2014',
-            'card_type' => 'Visa' ];
+            'card_type' => 'Visa', ];
         $member->shouldReceive('sendEmail')->withArgs(['payment-received', $email])->once();
 
         $this->assertTrue($webhook->chargeSucceeded($event, $member));
@@ -196,7 +196,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
             'stripe_transaction' => 'charge_succeeded',
             'description' => 'Descr',
             'success' => true,
-            'error' => null ];
+            'error' => null, ];
         $this->assertEquals($expected, $history->toArray(['id']));
     }
 
@@ -223,7 +223,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $member->shouldReceive('set')->withArgs([[
             'past_due' => false,
             'trial_ends' => 100,
-            'renews_next' => 101 ]]);
+            'renews_next' => 101, ]]);
 
         $this->assertTrue($webhook->updatedSubscription($event, $member));
     }
@@ -249,9 +249,9 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $member = Mockery::mock();
         $member->shouldReceive('set')->withArgs([[
             'past_due' => false,
-            'trial_ends' => 100 ]]);
+            'trial_ends' => 100, ]]);
         $email = [
-            'subject' => 'Your Test Site trial has ended' ];
+            'subject' => 'Your Test Site trial has ended', ];
         $member->shouldReceive('sendEmail')->withArgs(['trial-ended', $email])->once();
 
         $this->assertTrue($webhook->updatedSubscription($event, $member));
@@ -280,7 +280,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $member->shouldReceive('set')->withArgs([[
             'past_due' => true,
             'trial_ends' => 100,
-            'renews_next' => 101 ]]);
+            'renews_next' => 101, ]]);
 
         $this->assertTrue($webhook->updatedSubscription($event, $member));
     }
@@ -294,7 +294,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $member = Mockery::mock();
         $member->shouldReceive('set')->withArgs(['canceled', true]);
         $email = [
-            'subject' => 'Your subscription to Test Site has been canceled' ];
+            'subject' => 'Your subscription to Test Site has been canceled', ];
         $member->shouldReceive('sendEmail')->withArgs(['subscription-canceled', $email])->once();
 
         $this->assertTrue($webhook->canceledSubscription($event, $member));
@@ -308,7 +308,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
 
         $member = Mockery::mock();
         $email = [
-            'subject' => 'Your trial ends soon on Test Site' ];
+            'subject' => 'Your trial ends soon on Test Site', ];
         $member->shouldReceive('sendEmail')->withArgs(['trial-will-end', $email])->once();
 
         $this->assertTrue($webhook->trialWillEnd($event, $member));

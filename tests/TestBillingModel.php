@@ -13,6 +13,6 @@ class TestBillingModel extends BillableModel
     public function stripeCustomerData()
     {
         return [
-            'description' => 'TestBillingModel(' . $this->id . ')' ];
+            'description' => 'TestBillingModel('.$this->id.')' ];
     }
 }

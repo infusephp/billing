@@ -40,19 +40,22 @@ class BillingSubscription
     {
         // cannot create a subscription if there is already an
         // existing active/unpaid existing plan; must use change() instead
-        if (empty($this->plan) || !in_array($this->status(), ['not_subscribed','canceled']))
+        if (empty($this->plan) || !in_array($this->status(), ['not_subscribed', 'canceled'])) {
             return false;
+        }
 
         $customer = $this->model->stripeCustomer();
 
-        if (!$customer)
+        if (!$customer) {
             return false;
+        }
 
         $params = [
-            'plan' => $this->plan ];
+            'plan' => $this->plan, ];
 
-        if ($token)
+        if ($token) {
             $params['card'] = $token;
+        }
 
         try {
             $subscription = $customer->updateSubscription($params);
@@ -65,16 +68,16 @@ class BillingSubscription
                     'past_due' => false,
                     'renews_next' => $subscription->current_period_end,
                     'trial_ends' => $subscription->trial_end,
-                    'canceled' => false
+                    'canceled' => false,
                 ]);
                 $this->model->enforcePermissions();
 
                 return true;
             }
         } catch (\Exception $e) {
-            $this->app[ 'errors' ]->push( [
+            $this->app[ 'errors' ]->push([
                 'error' => 'stripe_error',
-                'message' => $e->getMessage() ] );
+                'message' => $e->getMessage(), ]);
             $this->app[ 'logger' ]->debug($e);
         }
 
@@ -91,26 +94,28 @@ class BillingSubscription
      */
     public function change($plan, $noTrial = false)
     {
-        if (empty($plan) || !in_array($this->status(), ['active','trialing','past_due','unpaid'])
-            || $this->model->not_charged)
-
+        if (empty($plan) || !in_array($this->status(), ['active', 'trialing', 'past_due', 'unpaid'])
+            || $this->model->not_charged) {
             return false;
+        }
 
         $customer = $this->model->stripeCustomer();
 
-        if (!$customer)
+        if (!$customer) {
             return false;
+        }
 
         $params = [
             'plan' => $plan,
-            'prorate' => true
+            'prorate' => true,
         ];
 
         // maintain the same trial end date if there is one
-        if ($noTrial)
+        if ($noTrial) {
             $params['trial_end'] = 'now';
-        elseif ($this->trialing())
+        } elseif ($this->trialing()) {
             $params['trial_end'] = $this->model->trial_ends;
+        }
 
         try {
             $subscription = $customer->updateSubscription($params);
@@ -123,7 +128,7 @@ class BillingSubscription
                     'past_due' => false,
                     'renews_next' => $subscription->current_period_end,
                     'trial_ends' => $subscription->trial_end,
-                    'canceled' => false
+                    'canceled' => false,
                 ]);
                 $this->model->enforcePermissions();
 
@@ -132,7 +137,7 @@ class BillingSubscription
                 return true;
             }
         } catch (\Exception $e) {
-            $this->app[ 'errors' ]->push( [ 'error' => 'stripe_error', 'message' => $e->getMessage() ] );
+            $this->app[ 'errors' ]->push([ 'error' => 'stripe_error', 'message' => $e->getMessage() ]);
             $this->app[ 'logger' ]->debug($e);
         }
 
@@ -146,13 +151,15 @@ class BillingSubscription
      */
     public function cancel()
     {
-        if (!$this->active())
+        if (!$this->active()) {
             return false;
+        }
 
         $customer = $this->model->stripeCustomer();
 
-        if (!$customer)
+        if (!$customer) {
             return false;
+        }
 
         try {
             $subscription = $customer->cancelSubscription();
@@ -166,7 +173,7 @@ class BillingSubscription
             }
         } catch (\Exception $e) {
             $this->app[ 'logger' ]->debug($e);
-            $this->app[ 'errors' ]->push( [ 'error' => 'stripe_error', 'message' => $e->getMessage() ] );
+            $this->app[ 'errors' ]->push([ 'error' => 'stripe_error', 'message' => $e->getMessage() ]);
         }
 
         return false;
@@ -179,27 +186,32 @@ class BillingSubscription
      */
     public function status()
     {
-        if ($this->model->canceled)
+        if ($this->model->canceled) {
             return 'canceled';
+        }
 
         // subscription plan must match model's bililng plan for it to
         // have a non-canceled status
-        if (!$this->plan || $this->model->plan != $this->plan)
+        if (!$this->plan || $this->model->plan != $this->plan) {
             return 'not_subscribed';
+        }
 
         // flag to skip charging this model, unless canceled the subscription
         // is always active
-        if ($this->model->not_charged)
+        if ($this->model->not_charged) {
             return 'active';
+        }
 
         // check if the subscription is active or trialing
-        if ($this->model->renews_next > time())
+        if ($this->model->renews_next > time()) {
             return ($this->model->trial_ends > time()) ? 'trialing' : 'active';
+        }
 
         // the subscription is past due when its status has been changed
         // to past_due on stripe
-        if ($this->model->past_due)
+        if ($this->model->past_due) {
             return 'past_due';
+        }
 
         return 'unpaid';
     }
@@ -211,8 +223,8 @@ class BillingSubscription
      */
     public function active()
     {
-        return in_array( $this->status(),
-            [ 'active', 'trialing', 'past_due' ] );
+        return in_array($this->status(),
+            [ 'active', 'trialing', 'past_due' ]);
     }
 
     /**

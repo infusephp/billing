@@ -19,16 +19,16 @@ class BillingHistory extends Model
 
     static $properties = [
         'uid' => [
-            'type' => 'number'
+            'type' => 'number',
         ],
         'payment_time' => [
             'type' => 'date',
-            'admin_type' => 'datepicker'
+            'admin_type' => 'datepicker',
         ],
         'amount' => [
             'type' => 'number',
             'searchable' => true,
-            'admin_html' => '${amount}'
+            'admin_html' => '${amount}',
         ],
         'stripe_customer' => [
             'type' => 'string',
@@ -43,17 +43,17 @@ class BillingHistory extends Model
         'description' => [
             'type' => 'string',
             'searchable' => true,
-            'admin_hidden_property' => true
+            'admin_hidden_property' => true,
         ],
         'success' => [
             'type' => 'boolean',
-            'admin_type' => 'checkbox'
+            'admin_type' => 'checkbox',
         ],
         'error' => [
             'type' => 'string',
             'null' => true,
             'searchable' => true,
-            'admin_hidden_property' => true
+            'admin_hidden_property' => true,
         ],
     ];
 

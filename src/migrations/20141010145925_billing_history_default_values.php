@@ -19,7 +19,6 @@ class BillingHistoryDefaultValues extends AbstractMigration
      */
     public function up()
     {
-
     }
 
     /**
@@ -27,6 +26,5 @@ class BillingHistoryDefaultValues extends AbstractMigration
      */
     public function down()
     {
-
     }
 }

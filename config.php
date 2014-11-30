@@ -5,12 +5,12 @@
 return  [
   'site' => [
     'title' => 'Test Site',
-    'salt' => 'replacewithrandomstring'
+    'salt' => 'replacewithrandomstring',
   ],
   'modules' => [
     'middleware' => [
-      'auth'
-    ]
+      'auth',
+    ],
   ],
   'database' => [
     'type' => 'mysql',
@@ -22,10 +22,10 @@ return  [
   'sessions' => [
     'enabled' => true,
     'adapter' => 'database',
-    'lifetime' => 86400
+    'lifetime' => 86400,
   ],
   'stripe' => [
-    'secret' => 'apiKey'
+    'secret' => 'apiKey',
   ],
   'billing' => [
     'emails' => [
@@ -33,8 +33,8 @@ return  [
       'payment_receipt' => true,
       'subscription_canceled' => true,
       'trial_ended' => true,
-      'trial_will_end' => true
+      'trial_will_end' => true,
     ],
-    'model' => 'TestBillingModel'
+    'model' => 'TestBillingModel',
   ]
 ];

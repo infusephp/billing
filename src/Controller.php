@@ -10,11 +10,11 @@ class Controller
 
     public static $properties = [
         'models' => [
-            'BillingHistory'
+            'BillingHistory',
         ],
         'routes' => [
-            'post /billing/webhook' => 'webhook'
-        ]
+            'post /billing/webhook' => 'webhook',
+        ],
     ];
 
     public static $scaffoldAdmin;
