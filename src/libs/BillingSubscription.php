@@ -32,11 +32,12 @@ class BillingSubscription
      * Creates a new Stripe subscription. If a token is provided it will
      * become the new default card for the customer
      *
-     * @param string $token optional Stripe token to use for the plan
+     * @param string  $token   optional Stripe token to use for the plan
+     * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
      *
      * @return boolean
      */
-    public function create($token = false)
+    public function create($token = false, $noTrial = false)
     {
         // cannot create a subscription if there is already an
         // existing active/unpaid existing plan; must use change() instead
@@ -55,6 +56,10 @@ class BillingSubscription
 
         if ($token) {
             $params['card'] = $token;
+        }
+
+        if ($noTrial) {
+            $params['trial_end'] = 'now';
         }
 
         try {

@@ -179,6 +179,35 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($subscription->create('tok_test'));
     }
 
+    public function testCreateNoTrial()
+    {
+        $resultSub = new stdClass();
+        $resultSub->status = 'active';
+        $resultSub->current_period_end = 100;
+        $resultSub->trial_end = 0;
+
+        $customer = Mockery::mock('StripeCustomer');
+        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'test', 'trial_end' => 'now']])
+            ->andReturn($resultSub)->once();
+
+        $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');
+        $testModel->shouldReceive('get');
+        $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
+        $testModel->shouldReceive('grantAllPermissions');
+        $testModel->shouldReceive('enforcePermissions');
+        $testModel->shouldReceive('set')->withArgs([[
+            'plan' => 'test',
+            'past_due' => false,
+            'renews_next' => 100,
+            'trial_ends' => 0,
+            'canceled' => false,
+        ]])->once();
+
+        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+
+        $this->assertTrue($subscription->create(false, true));
+    }
+
     public function testCreateFail()
     {
         $customer = Mockery::mock('StripeCustomer');
