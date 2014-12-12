@@ -148,7 +148,8 @@ class StripeWebhook
                     'card_last4' => $eventData->card->last4,
                     'card_expires' => $eventData->card->exp_month.'/'.$eventData->card->exp_year,
                     'card_type' => $eventData->card->brand,
-                    'error_message' => $eventData->failure_message ]);
+                    'error_message' => $eventData->failure_message,
+                    'tags' => ['billing', 'charge-failed'] ]);
         }
 
         return true;
@@ -192,7 +193,8 @@ class StripeWebhook
                     'description' => $description,
                     'card_last4' => $eventData->card->last4,
                     'card_expires' => $eventData->card->exp_month.'/'.$eventData->card->exp_year,
-                    'card_type' => $eventData->card->brand ]);
+                    'card_type' => $eventData->card->brand,
+                    'tags' => ['billing', 'payment-received'] ]);
         }
 
         return true;
@@ -227,7 +229,8 @@ class StripeWebhook
         if ($subscription->status == 'unpaid' && $this->app['config']->get('billing.emails.trial_ended')) {
             $member->sendEmail(
                 'trial-ended', [
-                    'subject' => 'Your '.$this->app['config']->get('site.title').' trial has ended' ]);
+                    'subject' => 'Your '.$this->app['config']->get('site.title').' trial has ended',
+                    'tags' => ['billing', 'trial-ended'] ]);
         }
 
         return true;
@@ -248,7 +251,8 @@ class StripeWebhook
         if ($this->app['config']->get('billing.emails.subscription_canceled')) {
             $member->sendEmail(
                 'subscription-canceled', [
-                    'subject' => 'Your subscription to '.$this->app['config']->get('site.title').' has been canceled' ]);
+                    'subject' => 'Your subscription to '.$this->app['config']->get('site.title').' has been canceled',
+                    'tags' => ['billing', 'subscription-canceled'] ]);
         }
 
         return true;
@@ -267,7 +271,8 @@ class StripeWebhook
         if ($this->app['config']->get('billing.emails.trial_will_end')) {
             $member->sendEmail(
                 'trial-will-end', [
-                    'subject' => 'Your trial ends soon on '.$this->app['config']->get('site.title') ]);
+                    'subject' => 'Your trial ends soon on '.$this->app['config']->get('site.title'),
+                    'tags' => ['billing', 'trial-will-end'] ]);
         }
 
         return true;

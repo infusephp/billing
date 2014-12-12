@@ -133,7 +133,8 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
             'card_last4' => '1234',
             'card_expires' => '05/2014',
             'card_type' => 'Visa',
-            'error_message' => 'Fail!', ];
+            'error_message' => 'Fail!',
+            'tags' => ['billing', 'charge-failed'], ];
         $member->shouldReceive('sendEmail')->withArgs(['payment-problem', $email])->once();
 
         $this->assertTrue($webhook->chargeFailed($event, $member));
@@ -180,7 +181,8 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
             'description' => 'Descr',
             'card_last4' => '1234',
             'card_expires' => '05/2014',
-            'card_type' => 'Visa', ];
+            'card_type' => 'Visa',
+            'tags' => ['billing','payment-received'], ];
         $member->shouldReceive('sendEmail')->withArgs(['payment-received', $email])->once();
 
         $this->assertTrue($webhook->chargeSucceeded($event, $member));
@@ -251,7 +253,8 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
             'past_due' => false,
             'trial_ends' => 100, ]]);
         $email = [
-            'subject' => 'Your Test Site trial has ended', ];
+            'subject' => 'Your Test Site trial has ended',
+            'tags' => ['billing', 'trial-ended'], ];
         $member->shouldReceive('sendEmail')->withArgs(['trial-ended', $email])->once();
 
         $this->assertTrue($webhook->updatedSubscription($event, $member));
@@ -294,7 +297,8 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $member = Mockery::mock();
         $member->shouldReceive('set')->withArgs(['canceled', true]);
         $email = [
-            'subject' => 'Your subscription to Test Site has been canceled', ];
+            'subject' => 'Your subscription to Test Site has been canceled',
+            'tags' => ['billing', 'subscription-canceled'], ];
         $member->shouldReceive('sendEmail')->withArgs(['subscription-canceled', $email])->once();
 
         $this->assertTrue($webhook->canceledSubscription($event, $member));
@@ -308,7 +312,8 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
 
         $member = Mockery::mock();
         $email = [
-            'subject' => 'Your trial ends soon on Test Site', ];
+            'subject' => 'Your trial ends soon on Test Site',
+            'tags' => ['billing', 'trial-will-end'], ];
         $member->shouldReceive('sendEmail')->withArgs(['trial-will-end', $email])->once();
 
         $this->assertTrue($webhook->trialWillEnd($event, $member));
