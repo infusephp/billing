@@ -120,6 +120,10 @@ abstract class BillableModel extends Model
 
         // create the customer on stripe
         try {
+            // This is necessary because save() on stripe objects does
+            // not accept an API key or save one from the retrieve() request
+            Stripe::setApiKey($this->app[ 'config' ]->get('stripe.secret'));
+
             $customer = Stripe_Customer::create($this->stripeCustomerData(), $apiKey);
 
             // save the new customer id on the model

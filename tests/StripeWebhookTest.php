@@ -307,6 +307,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
     public function testTrialWillEnd()
     {
         $event = new stdClass();
+        $event->trial_end = strtotime('+3 days');
 
         $webhook = new StripeWebhook([], TestBootstrap::app());
 

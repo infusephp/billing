@@ -269,10 +269,13 @@ class StripeWebhook
     public function trialWillEnd($eventData, $member)
     {
         if ($this->app['config']->get('billing.emails.trial_will_end')) {
-            $member->sendEmail(
-                'trial-will-end', [
-                    'subject' => 'Your trial ends soon on '.$this->app['config']->get('site.title'),
-                    'tags' => ['billing', 'trial-will-end'] ]);
+            // do not send the notice unless the trial has more than 1 day left
+            if ($eventData->trial_end - time() >= 86400) {
+                $member->sendEmail(
+                    'trial-will-end', [
+                        'subject' => 'Your trial ends soon on '.$this->app['config']->get('site.title'),
+                        'tags' => ['billing', 'trial-will-end'] ]);
+            }
         }
 
         return true;
