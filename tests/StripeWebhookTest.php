@@ -85,11 +85,11 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $validatedEvent->data = new stdClass();
         $validatedEvent->data->object = new stdClass();
         $validatedEvent->data->object->customer = 'cus_test';
+        $validatedEvent->data->object->trial_end = time();
         $staticEvent = Mockery::mock('alias:Stripe_Event');
         $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test', 'apiKey'])->andReturn($validatedEvent);
 
         $model = Mockery::mock();
-        $model->shouldReceive('sendEmail')->once();
 
         $app['config']->set('billing.model', 'TestBillingModel2');
         $staticModel = Mockery::mock('alias:TestBillingModel2');

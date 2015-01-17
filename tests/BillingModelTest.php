@@ -48,6 +48,9 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $customer = new stdClass();
         $customer->id = 'cust_test';
 
+        $staticStripe = Mockery::mock('alias:Stripe');
+        $staticStripe->shouldReceive('setApiKey')->withArgs(['apiKey'])->once();
+
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
         $staticCustomer->shouldReceive('create')->withArgs([['description' => 'TestBillingModel(1)'], 'apiKey'])
             ->andReturn($customer)->once();
@@ -59,6 +62,9 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
     {
         $testModel = new TestBillingModel(1);
         $testModel->stripe_customer = false;
+
+        $staticStripe = Mockery::mock('alias:Stripe');
+        $staticStripe->shouldReceive('setApiKey')->withArgs(['apiKey'])->once();
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
         $staticCustomer->shouldReceive('create')->withArgs([['description' => 'TestBillingModel(1)'], 'apiKey'])
