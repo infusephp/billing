@@ -1,9 +1,11 @@
-billing [![Build Status](https://travis-ci.org/infusephp/billing.png?branch=master)](https://travis-ci.org/infusephp/billing)
+billing
 =================
 
+[![Build Status](https://travis-ci.org/infusephp/billing.png?branch=master)](https://travis-ci.org/infusephp/billing)
 [![Coverage Status](https://coveralls.io/repos/infusephp/billing/badge.png)](https://coveralls.io/r/infusephp/billing)
-[![Latest Stable Version](https://poser.pugx.org/infusephp/billing/v/stable.png)](https://packagist.org/packages/infusephp/billing)
-[![Total Downloads](https://poser.pugx.org/infusephp/billing/downloads.png)](https://packagist.org/packages/infusephp/billing)
+[![Latest Stable Version](https://poser.pugx.org/infuse/billing/v/stable.png)](https://packagist.org/packages/infuse/billing)
+[![Total Downloads](https://poser.pugx.org/infuse/billing/downloads.png)](https://packagist.org/packages/infuse/billing)
+[![HHVM Status](http://hhvm.h4cc.de/badge/infuse/billing.svg)](http://hhvm.h4cc.de/package/infuse/billing)
 
 Stripe billing module for Infuse Framework
 
