@@ -1,8 +1,8 @@
 {
-	"name": "idealistsoft/framework-billing",
-	"description": "Stripe billing module for Idealist Framework",
+	"name": "infuse/billing",
+	"description": "Stripe billing module for Infuse Framework",
 	"type": "library",
-	"keywords": ["idealist","framework","billing","stripe","subscriptions"],
+	"keywords": ["infuse","framework","billing","stripe","subscriptions"],
 	"license": "MIT",
 	"authors": [
 		{
@@ -12,8 +12,8 @@
 		}
 	],
 	"support": {
-		"issues": "https://github.com/idealistsoft/framework-billing/issues",
-		"source": "https://github.com/idealistsoft/framework-billing"
+		"issues": "https://github.com/infusephp/billing/issues",
+		"source": "https://github.com/infusephp/billing"
 	},
     "autoload": {
         "psr-4": {"app\\billing\\": "src/"}
@@ -23,8 +23,8 @@
 		"stripe/stripe-php": "v1.17.1"
 	},
 	"require-dev": {
-		"idealistsoft/framework-bootstrap": "~1.1",
-		"idealistsoft/framework-auth": "~1.0",
+		"infuse/bootstrap": "~1.1",
+		"infuse/auth": "~1.0",
 		"satooshi/php-coveralls": "dev-master",
 		"robmorgan/phinx": "~0.3",
 		"mockery/mockery": "0.9.1"

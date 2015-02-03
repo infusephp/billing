@@ -1,11 +1,11 @@
-framework-billing [![Build Status](https://travis-ci.org/idealistsoft/framework-billing.png?branch=master)](https://travis-ci.org/idealistsoft/framework-billing)
+billing [![Build Status](https://travis-ci.org/infusephp/billing.png?branch=master)](https://travis-ci.org/infusephp/billing)
 =================
 
-[![Coverage Status](https://coveralls.io/repos/idealistsoft/framework-billing/badge.png)](https://coveralls.io/r/idealistsoft/framework-billing)
-[![Latest Stable Version](https://poser.pugx.org/idealistsoft/framework-billing/v/stable.png)](https://packagist.org/packages/idealistsoft/framework-billing)
-[![Total Downloads](https://poser.pugx.org/idealistsoft/framework-billing/downloads.png)](https://packagist.org/packages/idealistsoft/framework-billing)
+[![Coverage Status](https://coveralls.io/repos/infusephp/billing/badge.png)](https://coveralls.io/r/infusephp/billing)
+[![Latest Stable Version](https://poser.pugx.org/infusephp/billing/v/stable.png)](https://packagist.org/packages/infusephp/billing)
+[![Total Downloads](https://poser.pugx.org/infusephp/billing/downloads.png)](https://packagist.org/packages/infusephp/billing)
 
-Stripe billing module for Idealist Framework
+Stripe billing module for Infuse Framework
 
 ## Installation
 
