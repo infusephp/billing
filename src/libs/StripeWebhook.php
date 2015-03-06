@@ -118,6 +118,11 @@ class StripeWebhook
      */
     public function chargeFailed($eventData, $member)
     {
+        // currently only handle card charges
+        if ($eventData->source->object != 'card') {
+            return true;
+        }
+
         // add to billing history
         $description = $eventData->description;
 
@@ -145,9 +150,9 @@ class StripeWebhook
                     'payment_time' => date('F j, Y g:i a T', $eventData->created),
                     'amount' => number_format($eventData->amount / 100, 2),
                     'description' => $description,
-                    'card_last4' => $eventData->card->last4,
-                    'card_expires' => $eventData->card->exp_month.'/'.$eventData->card->exp_year,
-                    'card_type' => $eventData->card->brand,
+                    'card_last4' => $eventData->source->last4,
+                    'card_expires' => $eventData->source->exp_month.'/'.$eventData->source->exp_year,
+                    'card_type' => $eventData->source->brand,
                     'error_message' => $eventData->failure_message,
                     'tags' => ['billing', 'charge-failed'] ]);
         }
@@ -165,6 +170,11 @@ class StripeWebhook
      */
     public function chargeSucceeded($eventData, $member)
     {
+        // currently only handle card charges
+        if ($eventData->source->object != 'card') {
+            return true;
+        }
+
         // add to billing history
         $description = $eventData->description;
 
@@ -191,9 +201,9 @@ class StripeWebhook
                     'payment_time' => date('F j, Y g:i a T', $eventData->created),
                     'amount' => number_format($eventData->amount / 100, 2),
                     'description' => $description,
-                    'card_last4' => $eventData->card->last4,
-                    'card_expires' => $eventData->card->exp_month.'/'.$eventData->card->exp_year,
-                    'card_type' => $eventData->card->brand,
+                    'card_last4' => $eventData->source->last4,
+                    'card_expires' => $eventData->source->exp_month.'/'.$eventData->source->exp_year,
+                    'card_type' => $eventData->source->brand,
                     'tags' => ['billing', 'payment-received'] ]);
         }
 

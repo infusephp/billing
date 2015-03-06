@@ -30,7 +30,7 @@ class BillingSubscription
 
     /**
      * Creates a new Stripe subscription. If a token is provided it will
-     * become the new default card for the customer
+     * become the new default source for the customer
      *
      * @param string  $token   optional Stripe token to use for the plan
      * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
@@ -55,7 +55,7 @@ class BillingSubscription
             'plan' => $this->plan, ];
 
         if ($token) {
-            $params['card'] = $token;
+            $params['source'] = $token;
         }
 
         if ($noTrial) {

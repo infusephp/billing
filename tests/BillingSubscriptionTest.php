@@ -158,7 +158,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $resultSub->trial_end = 100;
 
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'test', 'card' => 'tok_test']])
+        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'test', 'source' => 'tok_test']])
             ->andReturn($resultSub)->once();
 
         $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');
@@ -211,7 +211,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
     public function testCreateFail()
     {
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'test', 'card' => 'tok_test']])
+        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'test', 'source' => 'tok_test']])
             ->andThrow(new Exception())->once();
 
         $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');

@@ -143,8 +143,8 @@ abstract class BillableModel extends Model
     }
 
     /**
-     * Sets the default card to charge for the customer in Stripe. If
-     * there is an existing default card, it will be deleted and replaced
+     * Sets the default source to charge for the customer in Stripe. If
+     * there is an existing default source, it will be deleted and replaced
      * with the new one.
      *
      * @param string $token
@@ -164,7 +164,7 @@ abstract class BillableModel extends Model
         Stripe::setApiKey($this->app[ 'config' ]->get('stripe.secret'));
 
         try {
-            $customer->card = $token;
+            $customer->source = $token;
             $customer->save();
 
             return true;

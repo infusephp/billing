@@ -112,11 +112,12 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $event->description = 'Descr';
         $event->created = 12;
         $event->amount = 1000;
-        $event->card = new stdClass();
-        $event->card->last4 = '1234';
-        $event->card->exp_month = '05';
-        $event->card->exp_year = '2014';
-        $event->card->brand = 'Visa';
+        $event->source = new stdClass();
+        $event->source->object = 'card';
+        $event->source->last4 = '1234';
+        $event->source->exp_month = '05';
+        $event->source->exp_year = '2014';
+        $event->source->brand = 'Visa';
         $event->failure_message = 'Fail!';
 
         $webhook = new StripeWebhook([], TestBootstrap::app());
@@ -162,11 +163,12 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $event->description = 'Descr';
         $event->created = 12;
         $event->amount = 1000;
-        $event->card = new stdClass();
-        $event->card->last4 = '1234';
-        $event->card->exp_month = '05';
-        $event->card->exp_year = '2014';
-        $event->card->brand = 'Visa';
+        $event->source = new stdClass();
+        $event->source->object = 'card';
+        $event->source->last4 = '1234';
+        $event->source->exp_month = '05';
+        $event->source->exp_year = '2014';
+        $event->source->brand = 'Visa';
 
         $webhook = new StripeWebhook([], TestBootstrap::app());
 

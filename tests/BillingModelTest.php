@@ -79,7 +79,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $testModel->stripe_customer = 'test';
 
         $customer = Mockery::mock('StripeCustomer');
-        $customer->card = false;
+        $customer->source = false;
         $customer->shouldReceive('save')->once();
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
@@ -90,7 +90,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($testModel->setDefaultCard('tok_test'));
 
-        $this->assertEquals('tok_test', $customer->card);
+        $this->assertEquals('tok_test', $customer->source);
     }
 
     public function testSetDefaultCardFail()
@@ -99,7 +99,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $testModel->stripe_customer = 'test';
 
         $customer = Mockery::mock('StripeCustomer');
-        $customer->card = false;
+        $customer->source = false;
         $customer->shouldReceive('save')->andThrow(new Exception())->once();
 
         $staticCustomer = Mockery::mock('alias:Stripe_Customer');
@@ -110,7 +110,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
 
         $this->assertFalse($testModel->setDefaultCard('tok_test'));
 
-        $this->assertEquals('tok_test', $customer->card);
+        $this->assertEquals('tok_test', $customer->source);
     }
 
     public function testSubscription()
