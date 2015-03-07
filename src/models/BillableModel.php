@@ -3,8 +3,8 @@
 namespace app\billing\models;
 
 use infuse\Model;
-use Stripe;
-use Stripe_Customer;
+use Stripe\Stripe;
+use Stripe\Customer;
 use app\billing\libs\BillingSubscription;
 
 abstract class BillableModel extends Model
@@ -98,7 +98,7 @@ abstract class BillableModel extends Model
     /**
      * Attempts to create or retrieve the Stripe Customer for this model
      *
-     * @return Stripe_Customer|false
+     * @return Customer|false
      */
     public function stripeCustomer()
     {
@@ -107,7 +107,7 @@ abstract class BillableModel extends Model
         // attempt to retreive the customer on stripe
         try {
             if ($custId = $this->stripe_customer) {
-                return Stripe_Customer::retrieve($custId, $apiKey);
+                return Customer::retrieve($custId, $apiKey);
             }
         } catch (\Exception $e) {
             $this->app[ 'logger' ]->debug($e);
@@ -122,9 +122,9 @@ abstract class BillableModel extends Model
         try {
             // This is necessary because save() on stripe objects does
             // not accept an API key or save one from the retrieve() request
-            Stripe::setApiKey($this->app[ 'config' ]->get('stripe.secret'));
+            Stripe::setApiKey($this->app['config']->get('stripe.secret'));
 
-            $customer = Stripe_Customer::create($this->stripeCustomerData(), $apiKey);
+            $customer = Customer::create($this->stripeCustomerData(), $apiKey);
 
             // save the new customer id on the model
             $this->grantAllPermissions();
@@ -161,7 +161,7 @@ abstract class BillableModel extends Model
 
         // This is necessary because save() on stripe objects does
         // not accept an API key or save one from the retrieve() request
-        Stripe::setApiKey($this->app[ 'config' ]->get('stripe.secret'));
+        Stripe::setApiKey($this->app['config']->get('stripe.secret'));
 
         try {
             $customer->source = $token;

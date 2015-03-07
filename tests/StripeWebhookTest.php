@@ -50,7 +50,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $webhook = new StripeWebhook($event, $app);
         $this->assertEquals(ERROR_EVENT_NOT_SUPPORTED, $webhook->process());
 
-        $staticEvent = Mockery::mock('alias:Stripe_Event');
+        $staticEvent = Mockery::mock('alias:Stripe\\Event');
         $e = new Exception();
         $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test', 'apiKey'])->andThrow(new Exception());
 
@@ -86,7 +86,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $validatedEvent->data->object = new stdClass();
         $validatedEvent->data->object->customer = 'cus_test';
         $validatedEvent->data->object->trial_end = time();
-        $staticEvent = Mockery::mock('alias:Stripe_Event');
+        $staticEvent = Mockery::mock('alias:Stripe\\Event');
         $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test', 'apiKey'])->andReturn($validatedEvent);
 
         $model = Mockery::mock();
@@ -215,7 +215,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $customer->subscriptions = new stdClass();
         $customer->subscriptions->data = [$sub];
 
-        $staticCustomer = Mockery::mock('alias:Stripe_Customer');
+        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
         $staticCustomer->shouldReceive('retrieve')->withArgs(['cus_test', 'apiKey'])->andReturn($customer);
 
         $event = new stdClass();
@@ -242,7 +242,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $customer->subscriptions = new stdClass();
         $customer->subscriptions->data = [$sub];
 
-        $staticCustomer = Mockery::mock('alias:Stripe_Customer');
+        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
         $staticCustomer->shouldReceive('retrieve')->withArgs(['cus_test', 'apiKey'])->andReturn($customer);
 
         $event = new stdClass();
@@ -273,7 +273,7 @@ class StripeWebhookTest extends \PHPUnit_Framework_TestCase
         $customer->subscriptions = new stdClass();
         $customer->subscriptions->data = [$sub];
 
-        $staticCustomer = Mockery::mock('alias:Stripe_Customer');
+        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
         $staticCustomer->shouldReceive('retrieve')->withArgs(['cus_test', 'apiKey'])->andReturn($customer);
 
         $event = new stdClass();

@@ -2,8 +2,8 @@
 
 namespace app\billing\libs;
 
-use Stripe_Customer;
-use Stripe_Event;
+use Stripe\Customer;
+use Stripe\Event;
 use App;
 use app\billing\models\BillingHistory;
 
@@ -67,7 +67,7 @@ class StripeWebhook
             // since those cannot be retrieved
             $validatedEvent = ($this->event['type'] == 'account.application.deauthorized') ?
                 (object) $this->event :
-                Stripe_Event::retrieve($this->event['id'], $this->apiKey);
+                Event::retrieve($this->event['id'], $this->apiKey);
 
             $type = $validatedEvent->type;
             if (!isset(self::$eventHandlers[$type])) {
@@ -221,7 +221,7 @@ class StripeWebhook
     public function updatedSubscription($eventData, $member)
     {
         // get the customer information
-        $customer = Stripe_Customer::retrieve($eventData->customer, $this->apiKey);
+        $customer = Customer::retrieve($eventData->customer, $this->apiKey);
 
         // we only use the 1st subscription
         $subscription = $customer->subscriptions->data[0];

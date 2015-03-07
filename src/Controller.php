@@ -3,7 +3,7 @@
 namespace app\billing;
 
 use app\billing\libs\StripeWebhook;
-use Stripe;
+use Stripe\Stripe;
 
 class Controller
 {
