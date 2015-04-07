@@ -58,7 +58,7 @@ abstract class BillableModel extends Model
     ];
 
     /**
-     * Returns data for this model to be set when creating Stripe Customers
+     * Returns data for this model to be set when creating Stripe Customers.
      *
      * @return array
      */
@@ -89,20 +89,20 @@ abstract class BillableModel extends Model
         }
 
         if (isset($data['canceled']) && $data['canceled'] && !$this->canceled) {
-            $data[ 'canceled_at' ] = time();
+            $data['canceled_at'] = time();
         }
 
         return true;
     }
 
     /**
-     * Attempts to create or retrieve the Stripe Customer for this model
+     * Attempts to create or retrieve the Stripe Customer for this model.
      *
      * @return Customer|false
      */
     public function stripeCustomer()
     {
-        $apiKey = $this->app[ 'config' ]->get('stripe.secret');
+        $apiKey = $this->app['config']->get('stripe.secret');
 
         // attempt to retreive the customer on stripe
         try {
@@ -110,8 +110,8 @@ abstract class BillableModel extends Model
                 return Customer::retrieve($custId, $apiKey);
             }
         } catch (\Exception $e) {
-            $this->app[ 'logger' ]->debug($e);
-            $this->app[ 'errors' ]->push([
+            $this->app['logger']->debug($e);
+            $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
 
@@ -133,8 +133,8 @@ abstract class BillableModel extends Model
 
             return $customer;
         } catch (\Exception $e) {
-            $this->app[ 'logger' ]->debug($e);
-            $this->app[ 'errors' ]->push([
+            $this->app['logger']->debug($e);
+            $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
         }
@@ -179,7 +179,7 @@ abstract class BillableModel extends Model
     }
 
     /**
-     * Retreives the subscription for this model
+     * Retreives the subscription for this model.
      *
      * @param string $plan optional billing plan to use
      *
