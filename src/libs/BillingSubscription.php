@@ -19,7 +19,7 @@ class BillingSubscription
     }
 
     /**
-     * Returns the plan associated with this object
+     * Returns the plan associated with this object.
      *
      * @return string
      */
@@ -30,7 +30,7 @@ class BillingSubscription
 
     /**
      * Creates a new Stripe subscription. If a token is provided it will
-     * become the new default source for the customer
+     * become the new default source for the customer.
      *
      * @param string  $token   optional Stripe token to use for the plan
      * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
@@ -90,7 +90,7 @@ class BillingSubscription
     }
 
     /**
-     * Changes the plan the member is subscribed to
+     * Changes the plan the member is subscribed to.
      *
      * @param string  $plan    stripe plan id
      * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
@@ -150,7 +150,7 @@ class BillingSubscription
     }
 
     /**
-     * Cancels the subscription
+     * Cancels the subscription.
      *
      * @return boolean
      */
@@ -185,7 +185,7 @@ class BillingSubscription
     }
 
     /**
-     * Gets the status of the subscription
+     * Gets the status of the subscription.
      *
      * @return string one of not_subscribed, trialing, active, past_due, canceled, or unpaid
      */
@@ -201,15 +201,20 @@ class BillingSubscription
             return 'not_subscribed';
         }
 
-        // flag to skip charging this model, unless canceled the subscription
-        // is always active
+        // check if subscription is trialing
+        if ($this->model->trial_ends > time()) {
+            return 'trialing';
+        }
+
+        // flag to skip charging this model - unless
+        // `trialing` or `canceled` the subscription is always active
         if ($this->model->not_charged) {
             return 'active';
         }
 
         // check if the subscription is active or trialing
         if ($this->model->renews_next > time()) {
-            return ($this->model->trial_ends > time()) ? 'trialing' : 'active';
+            return 'active';
         }
 
         // the subscription is past due when its status has been changed
@@ -222,7 +227,7 @@ class BillingSubscription
     }
 
     /**
-     * Checks if the model's subscription is active
+     * Checks if the model's subscription is active.
      *
      * @return boolean
      */
@@ -233,7 +238,7 @@ class BillingSubscription
     }
 
     /**
-     * Checks if the model's subscription is canceled
+     * Checks if the model's subscription is canceled.
      *
      * @return boolean
      */
@@ -243,7 +248,7 @@ class BillingSubscription
     }
 
     /**
-     * Checks if the model's subscription is in a trial period
+     * Checks if the model's subscription is in a trial period.
      *
      * @return boolean
      */

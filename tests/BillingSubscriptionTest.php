@@ -307,6 +307,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
 
         $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');
         $testModel->shouldReceive('get')->withArgs(['canceled'])->andReturn(false);
+        $testModel->shouldReceive('get')->withArgs(['trial_ends'])->andReturn(0);
         $testModel->shouldReceive('get')->withArgs(['not_charged'])->andReturn(true);
         $testModel->shouldReceive('get')->withArgs(['plan'])->andReturn('test');
         $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
@@ -326,6 +327,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
 
         $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');
         $testModel->shouldReceive('get')->withArgs(['canceled'])->andReturn(false);
+        $testModel->shouldReceive('get')->withArgs(['trial_ends'])->andReturn(0);
         $testModel->shouldReceive('get')->withArgs(['not_charged'])->andReturn(true);
         $testModel->shouldReceive('get')->withArgs(['plan'])->andReturn('test');
         $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
