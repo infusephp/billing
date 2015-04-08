@@ -244,6 +244,7 @@ abstract class BillableModel extends Model
         if ($config->get('billing.emails.trial_ended')) {
             $members = static::findAll([
                 'where' => [
+                    'trial_ends > 0',
                     'trial_ends < '.time(),
                     'renews_next' => 0,
                     '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ], ]);
