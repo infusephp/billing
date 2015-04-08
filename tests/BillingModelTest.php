@@ -162,7 +162,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $findAllMock->shouldReceive('findAll')->withArgs([['where' => [
             'trial_ends < '.time(),
             'renews_next' => 0,
-            'last_trial_reminder < trial_ends', ]]])->andReturn([$member2])->once();
+            '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ]]])->andReturn([$member2])->once();
 
         TestBillingModel::setFindAllMock($findAllMock);
 
