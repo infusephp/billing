@@ -160,6 +160,22 @@ class BillingSubscription
             return false;
         }
 
+        // no stripe customer means we have no subscription to cancel
+        if (!$this->model->stripe_customer) {
+            $this->model->grantAllPermissions();
+            $this->model->set('canceled', true);
+
+            // send an email
+            if ($this->app['config']->get('billing.emails.subscription_canceled')) {
+                $this->model->sendEmail(
+                    'subscription-canceled', [
+                        'subject' => 'Your subscription to '.$this->app['config']->get('site.title').' has been canceled',
+                        'tags' => ['billing', 'subscription-canceled'], ]);
+            }
+
+            return true;
+        }
+
         $customer = $this->model->stripeCustomer();
 
         if (!$customer) {
