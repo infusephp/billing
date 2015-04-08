@@ -161,14 +161,6 @@ class StripeWebhook extends WebhookController
 
         $member->set($update);
 
-        // TODO need to move this into cron job
-        if ($subscription->status == 'unpaid' && $this->app['config']->get('billing.emails.trial_ended')) {
-            $member->sendEmail(
-                'trial-ended', [
-                    'subject' => 'Your '.$this->app['config']->get('site.title').' trial has ended',
-                    'tags' => ['billing', 'trial-ended'], ]);
-        }
-
         return true;
     }
 
@@ -189,30 +181,6 @@ class StripeWebhook extends WebhookController
                 'subscription-canceled', [
                     'subject' => 'Your subscription to '.$this->app['config']->get('site.title').' has been canceled',
                     'tags' => ['billing', 'subscription-canceled'], ]);
-        }
-
-        return true;
-    }
-
-    /**
-     * Handles customer.subscription.trial_will_end.
-     *
-     * @param object $eventData
-     * @param object $member
-     *
-     * @return boolean
-     */
-    public function handleCustomerSubscriptionTrialWillEnd($eventData, $member)
-    {
-        // TODO need to move this into cron job
-        if ($this->app['config']->get('billing.emails.trial_will_end')) {
-            // do not send the notice unless the trial has more than 1 day left
-            if ($eventData->trial_end - time() >= 86400) {
-                $member->sendEmail(
-                    'trial-will-end', [
-                        'subject' => 'Your trial ends soon on '.$this->app['config']->get('site.title'),
-                        'tags' => ['billing', 'trial-will-end'], ]);
-            }
         }
 
         return true;

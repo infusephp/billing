@@ -21,6 +21,17 @@ class Controller extends StripeWebhook
     public static $scaffoldAdmin;
 
     ////////////////////////////
+    // CRON JOBS
+    ////////////////////////////
+
+    public function sendTrialReminders()
+    {
+        $modelClass = $this->app['config']->get('billing.model');
+
+        return $modelClass::sendTrialReminders();
+    }
+
+    ////////////////////////////
     // BACKGROUND TASKS
     ////////////////////////////
 

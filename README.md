@@ -22,15 +22,25 @@ composer require infuse/billing
 [
 	'model' => '\\app\\users\\models\\User',
 	'emails' => [
+		'trial_will_end' => true,
+		'trial_ended' => true,
 		'failed_payment' => true,
 		'payment_receipt' => true,
-		'trial_ended' => true,
-		'trial_will_end' => true,
 		'subscription_canceled' => true
 	],
 	'defaultPlan' => 'default_plan',
 	'plans' => [
 		...
 	]
+]
+```
+
+3. Add the following cron job to `cron.php`:
+```php
+[
+    'module' => 'billing',
+    'command' => 'sendTrialReminders',
+    'minute' => 0,
+    'expires' => 1800, // 30 minutes
 ]
 ```

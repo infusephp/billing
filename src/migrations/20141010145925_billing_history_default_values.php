@@ -13,18 +13,4 @@ class BillingHistoryDefaultValues extends AbstractMigration
         $table->changeColumn('error', 'string', ['default' => null, 'null' => true])
               ->save();
     }
-
-    /**
-     * Migrate Up.
-     */
-    public function up()
-    {
-    }
-
-    /**
-     * Migrate Down.
-     */
-    public function down()
-    {
-    }
 }

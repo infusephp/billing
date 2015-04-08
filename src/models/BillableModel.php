@@ -55,7 +55,19 @@ abstract class BillableModel extends Model
             'admin_type' => 'checkbox',
             'admin_hidden_property' => true,
         ],
+        'last_trial_reminder' => [
+            'type' => 'date',
+            'null' => true,
+            'admin_type' => 'datepicker',
+            'admin_hidden_property' => true,
+        ],
     ];
+
+    /**
+     * @var the number of days left when the trial will end
+     *          reminder should be sent
+     */
+    public static $trialWillEndReminderDays = 3;
 
     /**
      * Returns data for this model to be set when creating Stripe Customers.
@@ -192,5 +204,61 @@ abstract class BillableModel extends Model
         }
 
         return new BillingSubscription($this, $plan, $this->app);
+    }
+
+    /**
+     * Sends out trial reminders - trial_will_end and trial_ended.
+     *
+     * @return boolean
+     */
+    public static function sendTrialReminders()
+    {
+        $config = self::$injectedApp['config'];
+
+        /* Trial Will End Reminders */
+
+        if ($config->get('billing.emails.trial_will_end')) {
+            // reminder window is valid for up to 1 day
+            $end = time() + self::$trialWillEndReminderDays * 86400;
+            $start = $end - 86400;
+
+            $members = static::findAll([
+                'where' => [
+                    'trial_ends >= '.$start,
+                    'trial_ends <= '.$end,
+                    'last_trial_reminder IS NULL', ], ]);
+
+            foreach ($members as $member) {
+                $member->sendEmail(
+                    'trial-will-end', [
+                        'subject' => 'Your trial ends soon on '.$config->get('site.title'),
+                        'tags' => ['billing', 'trial-will-end'], ]);
+
+                $member->grantAllPermissions();
+                $member->set('last_trial_reminder', time());
+            }
+        }
+
+        /* Trial Ended Reminders */
+
+        if ($config->get('billing.emails.trial_ended')) {
+            $members = static::findAll([
+                'where' => [
+                    'trial_ends < '.time(),
+                    'renews_next' => 0,
+                    'last_trial_reminder < trial_ends', ], ]);
+
+            foreach ($members as $member) {
+                $member->sendEmail(
+                    'trial-ended', [
+                        'subject' => 'Your '.$config->get('site.title').' trial has ended',
+                        'tags' => ['billing', 'trial-ended'], ]);
+
+                $member->grantAllPermissions();
+                $member->set('last_trial_reminder', time());
+            }
+        }
+
+        return true;
     }
 }

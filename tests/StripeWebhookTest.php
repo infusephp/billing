@@ -53,7 +53,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
     public function testHandleCustomerNotFound()
     {
         $validatedEvent = new stdClass();
-        $validatedEvent->type = 'customer.subscription.trial_will_end';
+        $validatedEvent->type = 'customer.subscription.updated';
         $validatedEvent->data = new stdClass();
         $validatedEvent->data->object = new stdClass();
         $validatedEvent->data->object->customer = 'cus_test';
@@ -63,7 +63,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $event = [
             'id' => 'evt_test2',
             'livemode' => false,
-            'type' => 'customer.subscription.trial_will_end', ];
+            'type' => 'customer.subscription.updated', ];
         $this->assertEquals(StripeWebhook::ERROR_CUSTOMER_NOT_FOUND, self::$webhook->handle($event));
     }
 
@@ -99,22 +99,23 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $event = [
             'id' => 'evt_test',
             'livemode' => false,
-            'type' => 'customer.subscription.trial_will_end', ];
+            'type' => 'customer.subscription.updated', ];
         $this->assertEquals(StripeWebhook::ERROR_GENERIC, self::$webhook->handle($event));
     }
 
     public function testHandle()
     {
         $validatedEvent = new stdClass();
-        $validatedEvent->type = 'customer.subscription.trial_will_end';
+        $validatedEvent->type = 'customer.subscription.deleted';
         $validatedEvent->data = new stdClass();
         $validatedEvent->data->object = new stdClass();
         $validatedEvent->data->object->customer = 'cus_test';
-        $validatedEvent->data->object->trial_end = time();
         $staticEvent = Mockery::mock('alias:Stripe\\Event');
         $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test', 'apiKey'])->andReturn($validatedEvent);
 
         $model = Mockery::mock();
+        $model->shouldReceive('set');
+        $model->shouldReceive('sendEmail');
 
         Test::$app['config']->set('billing.model', 'TestBillingModel2');
         $staticModel = Mockery::mock('alias:TestBillingModel2');
@@ -123,7 +124,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $event = [
             'id' => 'evt_test',
             'livemode' => false,
-            'type' => 'customer.subscription.trial_will_end', ];
+            'type' => 'customer.subscription.updated', ];
 
         $this->assertEquals(StripeWebhook::SUCCESS, self::$webhook->handle($event));
     }
@@ -270,10 +271,6 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $member->shouldReceive('set')->withArgs([[
             'past_due' => false,
             'trial_ends' => 100, ]]);
-        $email = [
-            'subject' => 'Your Test Site trial has ended',
-            'tags' => ['billing', 'trial-ended'], ];
-        $member->shouldReceive('sendEmail')->withArgs(['trial-ended', $email])->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
     }
@@ -316,19 +313,5 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $member->shouldReceive('sendEmail')->withArgs(['subscription-canceled', $email])->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionDeleted($event, $member));
-    }
-
-    public function testTrialWillEnd()
-    {
-        $event = new stdClass();
-        $event->trial_end = strtotime('+3 days');
-
-        $member = Mockery::mock();
-        $email = [
-            'subject' => 'Your trial ends soon on Test Site',
-            'tags' => ['billing', 'trial-will-end'], ];
-        $member->shouldReceive('sendEmail')->withArgs(['trial-will-end', $email])->once();
-
-        $this->assertTrue(self::$webhook->handleCustomerSubscriptionTrialWillEnd($event, $member));
     }
 }

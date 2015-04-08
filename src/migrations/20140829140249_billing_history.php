@@ -22,18 +22,4 @@ class BillingHistory extends AbstractMigration
                   ->create();
         }
     }
-
-    /**
-     * Migrate Up.
-     */
-    public function up()
-    {
-    }
-
-    /**
-     * Migrate Down.
-     */
-    public function down()
-    {
-    }
 }

@@ -126,4 +126,46 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\\app\\billing\\libs\\BillingSubscription', $subscription);
         $this->assertEquals('blah', $subscription->plan());
     }
+
+    public function testSendTrialReminders()
+    {
+        $model = Mockery::mock('TestBillingModel')->makePartial();
+        Test::$app['config']->set('billing.emails.trial_will_end', true);
+        Test::$app['config']->set('billing.emails.trial_ended', true);
+        $model::inject(Test::$app);
+
+        $findAllMock = Mockery::mock();
+
+        $member = Mockery::mock();
+        $email = [
+            'subject' => 'Your trial ends soon on Test Site',
+            'tags' => ['billing', 'trial-will-end'], ];
+        $member->shouldReceive('sendEmail')->withArgs(['trial-will-end', $email])->once();
+        $member->shouldReceive('grantAllPermissions');
+        $member->shouldReceive('set')->withArgs(['last_trial_reminder', time()]);
+
+        $findAllMock->shouldReceive('findAll')
+            ->withArgs([['where' => [
+                'trial_ends >= '.strtotime('+2 days'),
+                'trial_ends <= '.strtotime('+3 days'),
+                'last_trial_reminder IS NULL', ]]])
+            ->andReturn([$member])->once();
+
+        $member2 = Mockery::mock();
+        $email2 = [
+            'subject' => 'Your Test Site trial has ended',
+            'tags' => ['billing', 'trial-ended'], ];
+        $member2->shouldReceive('sendEmail')->withArgs(['trial-ended', $email2])->once();
+        $member2->shouldReceive('grantAllPermissions');
+        $member2->shouldReceive('set')->withArgs(['last_trial_reminder', time()]);
+
+        $findAllMock->shouldReceive('findAll')->withArgs([['where' => [
+            'trial_ends < '.time(),
+            'renews_next' => 0,
+            'last_trial_reminder < trial_ends', ]]])->andReturn([$member2])->once();
+
+        TestBillingModel::setFindAllMock($findAllMock);
+
+        $this->assertTrue(TestBillingModel::sendTrialReminders());
+    }
 }
