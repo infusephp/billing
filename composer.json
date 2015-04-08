@@ -23,8 +23,8 @@
 		"stripe/stripe-php": "2.1.*"
 	},
 	"require-dev": {
-		"infuse/bootstrap": "~1.1",
-		"infuse/auth": "~1.0",
+		"infuse/bootstrap": "~1.2",
+		"infuse/auth": "~1.1",
 		"satooshi/php-coveralls": "dev-master",
 		"robmorgan/phinx": "~0.3",
 		"mockery/mockery": "0.9.1"

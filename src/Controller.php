@@ -5,10 +5,8 @@ namespace app\billing;
 use app\billing\libs\StripeWebhook;
 use Stripe\Stripe;
 
-class Controller
+class Controller extends StripeWebhook
 {
-    use \InjectApp;
-
     public static $properties = [
         'models' => [
             'BillingHistory',
@@ -21,14 +19,6 @@ class Controller
     ];
 
     public static $scaffoldAdmin;
-
-    public function webhook($req, $res)
-    {
-        $this->app['user']->enableSU();
-
-        $webhook = new StripeWebhook($req->request(), $this->app);
-        $res->setBody($webhook->process());
-    }
 
     ////////////////////////////
     // BACKGROUND TASKS

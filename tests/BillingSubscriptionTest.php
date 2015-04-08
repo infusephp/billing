@@ -29,7 +29,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
     public function testPlan()
     {
         $testModel = new TestBillingModel();
-        $sub = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertEquals('test', $sub->plan());
     }
@@ -37,11 +37,11 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
     public function testStatusNotSubscribed()
     {
         $testModel = new TestBillingModel();
-        $sub = new BillingSubscription($testModel, false, TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, false, Test::$app);
 
         $this->assertEquals('not_subscribed', $sub->status());
 
-        $sub = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
         $this->assertEquals('not_subscribed', $sub->status());
     }
 
@@ -49,7 +49,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
     {
         $testModel = new TestBillingModel();
         $testModel->canceled = true;
-        $sub = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertEquals('canceled', $sub->status());
         $this->assertTrue($sub->canceled());
@@ -60,7 +60,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel = new TestBillingModel();
         $testModel->plan = 'test';
         $testModel->renews_next = time() + 1000;
-        $sub = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertEquals('active', $sub->status());
         $this->assertTrue($sub->active());
@@ -71,7 +71,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel = new TestBillingModel();
         $testModel->plan = 'test';
         $testModel->not_charged = true;
-        $sub = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertEquals('active', $sub->status());
         $this->assertTrue($sub->active());
@@ -83,7 +83,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel->plan = 'test';
         $testModel->renews_next = time() + 1000;
         $testModel->trial_ends = time() + 900;
-        $sub = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertEquals('trialing', $sub->status());
         $this->assertTrue($sub->trialing());
@@ -94,7 +94,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel = new TestBillingModel();
         $testModel->plan = 'test';
         $testModel->past_due = true;
-        $sub = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertEquals('past_due', $sub->status());
         $this->assertTrue($sub->active());
@@ -104,7 +104,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
     {
         $testModel = new TestBillingModel();
         $testModel->plan = 'test';
-        $sub = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertEquals('unpaid', $sub->status());
     }
@@ -114,10 +114,10 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel = new TestBillingModel();
         $testModel->plan = 'test';
 
-        $sub = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
         $this->assertFalse($sub->create());
 
-        $sub = new BillingSubscription($testModel, '', TestBootstrap::app());
+        $sub = new BillingSubscription($testModel, '', Test::$app);
         $this->assertFalse($sub->create());
     }
 
@@ -145,7 +145,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
             'canceled' => false,
         ]])->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertTrue($subscription->create());
     }
@@ -174,7 +174,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
             'canceled' => false,
         ]])->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertTrue($subscription->create('tok_test'));
     }
@@ -203,7 +203,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
             'canceled' => false,
         ]])->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertTrue($subscription->create(false, true));
     }
@@ -218,7 +218,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel->shouldReceive('get');
         $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertFalse($subscription->create('tok_test'));
     }
@@ -269,7 +269,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
             'canceled' => false,
         ]])->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertTrue($subscription->change('blah', false, false));
         $this->assertEquals('blah', $subscription->plan());
@@ -292,7 +292,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel->shouldReceive('get')->withArgs(['plan'])->andReturn('test');
         $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertFalse($subscription->change('blah', true));
     }
@@ -313,7 +313,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel->shouldReceive('set')->withArgs(['canceled', true])->once();
         $testModel->shouldReceive('sendEmail')->withArgs(['subscription-canceled', ['subject' => 'Your subscription to Test Site has been canceled', 'tags' => ['billing', 'subscription-canceled']]])->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertTrue($subscription->cancel());
     }
@@ -337,7 +337,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel->shouldReceive('enforcePermissions');
         $testModel->shouldReceive('set')->withArgs(['canceled', true])->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertTrue($subscription->cancel());
     }
@@ -355,7 +355,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $testModel->shouldReceive('get')->withArgs(['stripe_customer'])->andReturn('cus_test');
         $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', TestBootstrap::app());
+        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
         $this->assertFalse($subscription->cancel());
     }

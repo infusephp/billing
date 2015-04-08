@@ -19,11 +19,6 @@ return  [
     'host' => '127.0.0.1',
     'name' => 'mydb',
   ],
-  'sessions' => [
-    'enabled' => true,
-    'adapter' => 'database',
-    'lifetime' => 86400,
-  ],
   'stripe' => [
     'secret' => 'apiKey',
   ],
@@ -36,5 +31,5 @@ return  [
       'trial_will_end' => true,
     ],
     'model' => 'TestBillingModel',
-  ]
+  ],
 ];

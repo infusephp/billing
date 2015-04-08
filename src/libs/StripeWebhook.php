@@ -3,120 +3,19 @@
 namespace app\billing\libs;
 
 use Stripe\Customer;
-use Stripe\Event;
-use App;
 use app\billing\models\BillingHistory;
 
-define('ERROR_INVALID_EVENT', 'invalid_event');
-define('ERROR_LIVEMODE_MISMATCH', 'livemode_mismatch');
-define('ERROR_STRIPE_CONNECT_EVENT', 'stripe_connect_event');
-define('ERROR_EVENT_NOT_SUPPORTED', 'event_not_supported');
-define('ERROR_CUSTOMER_NOT_FOUND', 'customer_not_found');
-define('STRIPE_WEBHOOK_SUCCESS', 'OK');
-
-class StripeWebhook
+class StripeWebhook extends WebhookController
 {
-    private $event;
-    private $app;
-    private $apiKey;
-
-    private static $eventHandlers = [
-        'charge.failed' => 'chargeFailed',
-        'charge.succeeded' => 'chargeSucceeded',
-        'customer.subscription.created' => 'updatedSubscription',
-        'invoice.payment_succeeded' => 'updatedSubscription',
-        'customer.subscription.created' => 'updatedSubscription',
-        'customer.subscription.updated' => 'updatedSubscription',
-        'customer.subscription.deleted' => 'canceledSubscription',
-        'customer.subscription.trial_will_end' => 'trialWillEnd',
-    ];
-
-    public function __construct(array $event, App $app)
-    {
-        $this->event = $event;
-        $this->app = $app;
-        $this->apiKey = $this->app[ 'config' ]->get('stripe.secret');
-    }
-
     /**
-     * This function receives a Stripe webhook and processes it.
-     *
-     * Currently, we only care about the charge.succeeded and charge.failed events. This method returns a string
-     * because typically the only person that sees the output is a Stripe server
-     *
-     * @return string output
-     */
-    public function process()
-    {
-        if (!isset($this->event['id'])) {
-            return ERROR_INVALID_EVENT;
-        }
-
-        // check that the livemode matches our development state
-        if (!($this->event['livemode'] && $this->app['config']->get('site.production-level') ||
-            !$this->event['livemode'] && !$this->app['config']->get('site.production-level'))) {
-            return ERROR_LIVEMODE_MISMATCH;
-        }
-
-        if (isset($this->event['user_id'])) {
-            return ERROR_STRIPE_CONNECT_EVENT;
-        }
-
-        try {
-            // retreive the event, unless it is a deauth event
-            // since those cannot be retrieved
-            $validatedEvent = ($this->event['type'] == 'account.application.deauthorized') ?
-                (object) $this->event :
-                Event::retrieve($this->event['id'], $this->apiKey);
-
-            $type = $validatedEvent->type;
-            if (!isset(self::$eventHandlers[$type])) {
-                return ERROR_EVENT_NOT_SUPPORTED;
-            }
-
-            // get the data attached to the event
-            $eventData = $validatedEvent->data->object;
-
-            // find out which user this event is for by cross-referencing the customer id
-            $modelClass = $this->app['config']->get('billing.model');
-
-            // TODO this try/catch block can be removed
-            // once infuse/libs is updated beyond v0.3.0.
-            // It's only used to get the tests to pass because
-            // the test model's table does not exist
-            $member = false;
-
-            try {
-                $member = $modelClass::findOne([
-                    'where' => [
-                        'stripe_customer' => $eventData->customer, ], ]);
-            } catch (\Exception $e) {
-            }
-
-            if (!$member) {
-                return ERROR_CUSTOMER_NOT_FOUND;
-            }
-
-            $handler = self::$eventHandlers[$type];
-            if ($this->$handler($eventData, $member)) {
-                return STRIPE_WEBHOOK_SUCCESS;
-            }
-        } catch (\Exception $e) {
-            $this->app['logger']->error($e);
-        }
-
-        return 'error';
-    }
-
-    /**
-     * Handles failed charge events
+     * Handles charge.failed.
      *
      * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function chargeFailed($eventData, $member)
+    public function handleChargeFailed($eventData, $member)
     {
         // currently only handle card charges
         if ($eventData->source->object != 'card') {
@@ -154,21 +53,21 @@ class StripeWebhook
                     'card_expires' => $eventData->source->exp_month.'/'.$eventData->source->exp_year,
                     'card_type' => $eventData->source->brand,
                     'error_message' => $eventData->failure_message,
-                    'tags' => ['billing', 'charge-failed'] ]);
+                    'tags' => ['billing', 'charge-failed'], ]);
         }
 
         return true;
     }
 
     /**
-     * Handles succeeded charge events
+     * Handles charge.succeeded.
      *
      * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function chargeSucceeded($eventData, $member)
+    public function handleChargeSucceeded($eventData, $member)
     {
         // currently only handle card charges
         if ($eventData->source->object != 'card') {
@@ -204,21 +103,47 @@ class StripeWebhook
                     'card_last4' => $eventData->source->last4,
                     'card_expires' => $eventData->source->exp_month.'/'.$eventData->source->exp_year,
                     'card_type' => $eventData->source->brand,
-                    'tags' => ['billing', 'payment-received'] ]);
+                    'tags' => ['billing', 'payment-received'], ]);
         }
 
         return true;
     }
 
     /**
-     * Handles created/updated subscription events
+     * Handles customer.subscription.created.
      *
      * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function updatedSubscription($eventData, $member)
+    public function handleCustomerSubscriptionCreated($eventData, $member)
+    {
+        return $this->handleCustomerSubscriptionUpdated($eventData, $member);
+    }
+
+    /**
+     * Handles invoice.payment_succeeded.
+     *
+     * @param object $eventData
+     * @param object $member
+     *
+     * @return boolean
+     */
+    public function handleInvoicePaymentSucceeded($eventData, $member)
+    {
+        return $this->handleCustomerSubscriptionUpdated($eventData, $member);
+    }
+
+    /**
+     * Handles customer.subscription.updated.
+     *
+     * @param object $eventData
+     * @param object $member
+     *
+     * @return boolean
+     */
+    public function handleCustomerSubscriptionUpdated($eventData, $member)
     {
         // get the customer information
         $customer = Customer::retrieve($eventData->customer, $this->apiKey);
@@ -236,25 +161,26 @@ class StripeWebhook
 
         $member->set($update);
 
+        // TODO need to move this into cron job
         if ($subscription->status == 'unpaid' && $this->app['config']->get('billing.emails.trial_ended')) {
             $member->sendEmail(
                 'trial-ended', [
                     'subject' => 'Your '.$this->app['config']->get('site.title').' trial has ended',
-                    'tags' => ['billing', 'trial-ended'] ]);
+                    'tags' => ['billing', 'trial-ended'], ]);
         }
 
         return true;
     }
 
     /**
-     * Handles canceled subscription events
+     * Handles customer.subscription.deleted.
      *
      * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function canceledSubscription($eventData, $member)
+    public function handleCustomerSubscriptionDeleted($eventData, $member)
     {
         $member->set('canceled', true);
 
@@ -262,29 +188,30 @@ class StripeWebhook
             $member->sendEmail(
                 'subscription-canceled', [
                     'subject' => 'Your subscription to '.$this->app['config']->get('site.title').' has been canceled',
-                    'tags' => ['billing', 'subscription-canceled'] ]);
+                    'tags' => ['billing', 'subscription-canceled'], ]);
         }
 
         return true;
     }
 
     /**
-     * Handles trial ends soon events
+     * Handles customer.subscription.trial_will_end.
      *
      * @param object $eventData
      * @param object $member
      *
      * @return boolean
      */
-    public function trialWillEnd($eventData, $member)
+    public function handleCustomerSubscriptionTrialWillEnd($eventData, $member)
     {
+        // TODO need to move this into cron job
         if ($this->app['config']->get('billing.emails.trial_will_end')) {
             // do not send the notice unless the trial has more than 1 day left
             if ($eventData->trial_end - time() >= 86400) {
                 $member->sendEmail(
                     'trial-will-end', [
                         'subject' => 'Your trial ends soon on '.$this->app['config']->get('site.title'),
-                        'tags' => ['billing', 'trial-will-end'] ]);
+                        'tags' => ['billing', 'trial-will-end'], ]);
             }
         }
 
