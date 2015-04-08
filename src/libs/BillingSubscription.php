@@ -94,10 +94,11 @@ class BillingSubscription
      *
      * @param string  $plan    stripe plan id
      * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
+     * @param boolean $prorate when true, prorates the plan change
      *
      * @return boolean result
      */
-    public function change($plan, $noTrial = false)
+    public function change($plan, $noTrial = false, $prorate = true)
     {
         if (empty($plan) || !in_array($this->status(), ['active', 'trialing', 'past_due', 'unpaid'])
             || $this->model->not_charged) {
@@ -112,7 +113,7 @@ class BillingSubscription
 
         $params = [
             'plan' => $plan,
-            'prorate' => true,
+            'prorate' => $prorate,
         ];
 
         // maintain the same trial end date if there is one
