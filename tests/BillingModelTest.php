@@ -148,6 +148,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
             ->withArgs([['where' => [
                 'trial_ends >= '.strtotime('+2 days'),
                 'trial_ends <= '.strtotime('+3 days'),
+                'canceled' => 0,
                 'last_trial_reminder IS NULL', ]]])
             ->andReturn([$member])->once();
 
@@ -163,6 +164,7 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
             'trial_ends > 0',
             'trial_ends < '.time(),
             'renews_next' => 0,
+            'canceled' => 0,
             '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ]]])->andReturn([$member2])->once();
 
         TestBillingModel::setFindAllMock($findAllMock);

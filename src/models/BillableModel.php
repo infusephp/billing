@@ -226,6 +226,7 @@ abstract class BillableModel extends Model
                 'where' => [
                     'trial_ends >= '.$start,
                     'trial_ends <= '.$end,
+                    'canceled' => 0,
                     'last_trial_reminder IS NULL', ], ]);
 
             foreach ($members as $member) {
@@ -247,6 +248,7 @@ abstract class BillableModel extends Model
                     'trial_ends > 0',
                     'trial_ends < '.time(),
                     'renews_next' => 0,
+                    'canceled' => 0,
                     '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ], ]);
 
             foreach ($members as $member) {
