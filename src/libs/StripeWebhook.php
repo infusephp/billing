@@ -123,19 +123,6 @@ class StripeWebhook extends WebhookController
     }
 
     /**
-     * Handles invoice.payment_succeeded.
-     *
-     * @param object $eventData
-     * @param object $member
-     *
-     * @return boolean
-     */
-    public function handleInvoicePaymentSucceeded($eventData, $member)
-    {
-        return $this->handleCustomerSubscriptionUpdated($eventData, $member);
-    }
-
-    /**
      * Handles customer.subscription.updated.
      *
      * @param object $eventData
@@ -145,18 +132,14 @@ class StripeWebhook extends WebhookController
      */
     public function handleCustomerSubscriptionUpdated($eventData, $member)
     {
-        // get the customer information
-        $customer = Customer::retrieve($eventData->customer, $this->apiKey);
-
-        // we only use the 1st subscription
-        $subscription = $customer->subscriptions->data[0];
-
         $update = [
-            'past_due' => $subscription->status == 'past_due',
-            'trial_ends' => $subscription->trial_end, ];
+            'past_due' => $eventData->status == 'past_due',
+            'trial_ends' => $eventData->trial_end,
+            'plan' => $eventData->plan->id,
+        ];
 
-        if (in_array($subscription->status, ['trialing', 'active', 'past_due'])) {
-            $update['renews_next'] = $subscription->current_period_end;
+        if (in_array($eventData->status, ['trialing', 'active', 'past_due'])) {
+            $update['renews_next'] = $eventData->current_period_end;
         }
 
         $member->set($update);

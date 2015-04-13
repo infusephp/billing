@@ -227,76 +227,55 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
     public function testSubscriptionCreated()
     {
-        $sub = new stdClass();
-        $sub->status = 'trialing';
-        $sub->trial_end = 100;
-        $sub->current_period_end = 101;
-
-        $customer = new stdClass();
-        $customer->subscriptions = new stdClass();
-        $customer->subscriptions->data = [$sub];
-
-        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
-        $staticCustomer->shouldReceive('retrieve')->withArgs(['cus_test', 'apiKey'])->andReturn($customer);
-
         $event = new stdClass();
-        $event->customer = 'cus_test';
+        $event->status = 'trialing';
+        $event->trial_end = 100;
+        $event->current_period_end = 101;
+        $event->plan = new stdClass();
+        $event->plan->id = 'invoiced-growth';
 
         $member = Mockery::mock();
         $member->shouldReceive('set')->withArgs([[
             'past_due' => false,
             'trial_ends' => 100,
-            'renews_next' => 101, ]]);
+            'renews_next' => 101,
+            'plan' => 'invoiced-growth', ]]);
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionCreated($event, $member));
     }
 
     public function testSubscriptionUnpaid()
     {
-        $sub = new stdClass();
-        $sub->status = 'unpaid';
-        $sub->trial_end = 100;
-
-        $customer = new stdClass();
-        $customer->subscriptions = new stdClass();
-        $customer->subscriptions->data = [$sub];
-
-        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
-        $staticCustomer->shouldReceive('retrieve')->withArgs(['cus_test', 'apiKey'])->andReturn($customer);
-
         $event = new stdClass();
-        $event->customer = 'cus_test';
+        $event->status = 'unpaid';
+        $event->trial_end = 100;
+        $event->plan = new stdClass();
+        $event->plan->id = 'invoiced-startup';
 
         $member = Mockery::mock();
         $member->shouldReceive('set')->withArgs([[
             'past_due' => false,
-            'trial_ends' => 100, ]]);
+            'trial_ends' => 100,
+            'plan' => 'invoiced-startup', ]]);
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
     }
 
     public function testSubscriptionPastDue()
     {
-        $sub = new stdClass();
-        $sub->status = 'past_due';
-        $sub->trial_end = 100;
-        $sub->current_period_end = 101;
-
-        $customer = new stdClass();
-        $customer->subscriptions = new stdClass();
-        $customer->subscriptions->data = [$sub];
-
-        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
-        $staticCustomer->shouldReceive('retrieve')->withArgs(['cus_test', 'apiKey'])->andReturn($customer);
-
         $event = new stdClass();
-        $event->customer = 'cus_test';
+        $event->status = 'past_due';
+        $event->trial_end = 100;
+        $event->current_period_end = 101;
+        $event->plan = new stdClass();
+        $event->plan->id = 'invoiced-startup';
 
         $member = Mockery::mock();
         $member->shouldReceive('set')->withArgs([[
             'past_due' => true,
             'trial_ends' => 100,
-            'renews_next' => 101, ]]);
+            'renews_next' => 101,
+            'plan' => 'invoiced-startup', ]]);
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
     }
