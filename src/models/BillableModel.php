@@ -211,7 +211,7 @@ abstract class BillableModel extends Model
      *
      * @return boolean
      */
-    public static function sendTrialReminders()
+    public static function sendTrialReminders($echoOutput = true)
     {
         $config = self::$injectedApp['config'];
 
@@ -229,6 +229,7 @@ abstract class BillableModel extends Model
                     'canceled' => 0,
                     'last_trial_reminder IS NULL', ], ]);
 
+            $n = 0;
             foreach ($members as $member) {
                 $member->sendEmail(
                     'trial-will-end', [
@@ -237,6 +238,12 @@ abstract class BillableModel extends Model
 
                 $member->grantAllPermissions();
                 $member->set('last_trial_reminder', time());
+
+                $n++;
+            }
+
+            if ($echoOutput) {
+                echo "--- Sent $n trial will end notices(s)\n";
             }
         }
 
@@ -251,6 +258,7 @@ abstract class BillableModel extends Model
                     'canceled' => 0,
                     '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ], ]);
 
+            $n = 0;
             foreach ($members as $member) {
                 $member->sendEmail(
                     'trial-ended', [
@@ -259,6 +267,12 @@ abstract class BillableModel extends Model
 
                 $member->grantAllPermissions();
                 $member->set('last_trial_reminder', time());
+
+                $n++;
+            }
+
+            if ($echoOutput) {
+                echo "--- Sent $n trial ended notices(s)\n";
             }
         }
 

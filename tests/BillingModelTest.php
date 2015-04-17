@@ -169,6 +169,6 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
 
         TestBillingModel::setFindAllMock($findAllMock);
 
-        $this->assertTrue(TestBillingModel::sendTrialReminders());
+        $this->assertTrue(TestBillingModel::sendTrialReminders(false));
     }
 }
