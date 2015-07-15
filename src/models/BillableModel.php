@@ -17,6 +17,7 @@ abstract class BillableModel extends Model
         'stripe_customer' => [
             'type' => 'string',
             'null' => true,
+            'hidden' => true,
             'admin_html' => '<a href="https://manage.stripe.com/customers/{stripe_customer}" target="_blank">{stripe_customer}</a>',
         ],
         'renews_next' => [
@@ -52,12 +53,14 @@ abstract class BillableModel extends Model
         'not_charged' => [
             'type' => 'boolean',
             'default' => false,
+            'hidden' => true,
             'admin_type' => 'checkbox',
             'admin_hidden_property' => true,
         ],
         'last_trial_reminder' => [
             'type' => 'date',
             'null' => true,
+            'hidden' => true,
             'admin_type' => 'datepicker',
             'admin_hidden_property' => true,
         ],
