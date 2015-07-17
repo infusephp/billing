@@ -129,8 +129,11 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $resultSub->trial_end = 100;
 
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'test']])
-            ->andReturn($resultSub)->once();
+        $customer->shouldReceive('updateSubscription')
+                 ->withArgs([[
+                    'plan' => 'test',
+                    'coupon' => 'favorite-customer', ]])
+                 ->andReturn($resultSub)->once();
 
         $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');
         $testModel->shouldReceive('get');
@@ -147,7 +150,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
 
         $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
-        $this->assertTrue($subscription->create());
+        $this->assertTrue($subscription->create(false, false, ['coupon' => 'favorite-customer']));
     }
 
     public function testCreateWithToken()
@@ -271,7 +274,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
 
         $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
-        $this->assertTrue($subscription->change('blah', false, false));
+        $this->assertTrue($subscription->change('blah', false, ['prorate' => false]));
         $this->assertEquals('blah', $subscription->plan());
     }
 

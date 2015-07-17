@@ -34,10 +34,11 @@ class BillingSubscription
      *
      * @param string  $token   optional Stripe token to use for the plan
      * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
+     * @param array   $params  optional parameters to pass to stripe when creating subscription
      *
      * @return boolean
      */
-    public function create($token = false, $noTrial = false)
+    public function create($token = false, $noTrial = false, array $params = [])
     {
         // cannot create a subscription if there is already an
         // existing active/unpaid existing plan; must use change() instead
@@ -51,8 +52,7 @@ class BillingSubscription
             return false;
         }
 
-        $params = [
-            'plan' => $this->plan, ];
+        $params['plan'] = $this->plan;
 
         if ($token) {
             $params['source'] = $token;
@@ -94,11 +94,11 @@ class BillingSubscription
      *
      * @param string  $plan    stripe plan id
      * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
-     * @param boolean $prorate when true, prorates the plan change
+     * @param array   $params  optional parameters to pass to stripe when creating subscription
      *
      * @return boolean result
      */
-    public function change($plan, $noTrial = false, $prorate = true)
+    public function change($plan, $noTrial = false, array $params = [])
     {
         if (empty($plan) || !in_array($this->status(), ['active', 'trialing', 'past_due', 'unpaid'])
             || $this->model->not_charged) {
@@ -111,10 +111,11 @@ class BillingSubscription
             return false;
         }
 
-        $params = [
-            'plan' => $plan,
-            'prorate' => $prorate,
-        ];
+        $params['plan'] = $plan;
+
+        if (!isset($params['prorate'])) {
+            $params['prorate'] = true;
+        }
 
         // maintain the same trial end date if there is one
         if ($noTrial) {
