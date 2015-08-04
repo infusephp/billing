@@ -218,7 +218,7 @@ class BillingSubscription
         }
 
         // check if subscription is trialing
-        if ($this->model->trial_ends > time() && !$this->model->renews_next) {
+        if ($this->model->trial_ends > time()) {
             return 'trialing';
         }
 
