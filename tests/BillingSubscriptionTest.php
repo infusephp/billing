@@ -81,7 +81,7 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
     {
         $testModel = new TestBillingModel();
         $testModel->plan = 'test';
-        $testModel->renews_next = time() + 1000;
+        $testModel->renews_next = 0;
         $testModel->trial_ends = time() + 900;
         $sub = new BillingSubscription($testModel, 'test', Test::$app);
 
@@ -144,7 +144,6 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
             'plan' => 'test',
             'past_due' => false,
             'renews_next' => 100,
-            'trial_ends' => 100,
             'canceled' => false,
         ]])->once();
 
@@ -173,7 +172,6 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
             'plan' => 'test',
             'past_due' => false,
             'renews_next' => 100,
-            'trial_ends' => 100,
             'canceled' => false,
         ]])->once();
 
@@ -202,7 +200,6 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
             'plan' => 'test',
             'past_due' => false,
             'renews_next' => 100,
-            'trial_ends' => 0,
             'canceled' => false,
         ]])->once();
 
@@ -249,28 +246,44 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $resultSub->plan->id = 'blah';
 
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([[
-            'plan' => 'blah',
-            'prorate' => false,
-            'trial_end' => $trialEnds, ]])
-            ->andReturn($resultSub)->once();
+        $customer->shouldReceive('updateSubscription')
+            ->withArgs([[
+                'plan' => 'blah',
+                'prorate' => false,
+                'trial_end' => $trialEnds, ]])
+            ->andReturn($resultSub)
+            ->once();
 
         $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');
-        $testModel->shouldReceive('get')->withArgs(['canceled'])->andReturn(false);
-        $testModel->shouldReceive('get')->withArgs(['not_charged'])->andReturn(false);
-        $testModel->shouldReceive('get')->withArgs(['trial_ends'])->andReturn($trialEnds);
-        $testModel->shouldReceive('get')->withArgs(['renews_next'])->andReturn($trialEnds);
-        $testModel->shouldReceive('get')->withArgs(['plan'])->andReturn('test');
-        $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
-        $testModel->shouldReceive('grantAllPermissions');
+        $testModel->shouldReceive('get')
+                  ->withArgs(['canceled'])
+                  ->andReturn(false);
+        $testModel->shouldReceive('get')
+                  ->withArgs(['not_charged'])
+                  ->andReturn(false);
+        $testModel->shouldReceive('get')
+                  ->withArgs(['trial_ends'])
+                  ->andReturn($trialEnds);
+        $testModel->shouldReceive('get')
+                  ->withArgs(['renews_next'])
+                  ->andReturn(0);
+        $testModel->shouldReceive('get')
+                  ->withArgs(['plan'])
+                  ->andReturn('test');
+        $testModel->shouldReceive('stripeCustomer')
+                  ->andReturn($customer)
+                  ->once();
+        $testModel->shouldReceive('grantAllPermissions')
+                  ->andReturn($testModel);
+        $testModel->shouldReceive('set')
+                  ->withArgs([[
+                    'plan' => 'blah',
+                    'past_due' => false,
+                    'renews_next' => 100,
+                    'canceled' => false,
+                  ]])
+                  ->once();
         $testModel->shouldReceive('enforcePermissions');
-        $testModel->shouldReceive('set')->withArgs([[
-            'plan' => 'blah',
-            'past_due' => false,
-            'renews_next' => 100,
-            'trial_ends' => 100,
-            'canceled' => false,
-        ]])->once();
 
         $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 

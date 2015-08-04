@@ -74,7 +74,7 @@ class Controller extends StripeWebhook
                         $memberUpdateData = [
                             'past_due' => in_array($subscription->status, ['past_due', 'unpaid', 'canceled']),
                             'renews_next' => $subscription->current_period_end,
-                            'trial_ends' => (int) $subscription->trial_end, ];
+                        ];
 
                         if ($subscription->status == 'canceled') {
                             $memberUpdateData['canceled'] = true;
@@ -90,7 +90,6 @@ class Controller extends StripeWebhook
             $currentMemberData = $member->get([
                 'past_due',
                 'renews_next',
-                'trial_ends',
                 'canceled', ]);
 
             $currentMemberData['past_due'] = (bool) $currentMemberData['past_due'];

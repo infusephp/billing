@@ -72,7 +72,6 @@ class BillingSubscription
                     'plan' => $this->plan,
                     'past_due' => false,
                     'renews_next' => $subscription->current_period_end,
-                    'trial_ends' => $subscription->trial_end,
                     'canceled' => false,
                 ]);
                 $this->model->enforcePermissions();
@@ -129,14 +128,13 @@ class BillingSubscription
 
             // update the user's billing state
             if (in_array($subscription->status, ['active', 'trialing']) && $subscription->plan->id == $plan) {
-                $this->model->grantAllPermissions();
-                $this->model->set([
-                    'plan' => $plan,
-                    'past_due' => false,
-                    'renews_next' => $subscription->current_period_end,
-                    'trial_ends' => $subscription->trial_end,
-                    'canceled' => false,
-                ]);
+                $this->model->grantAllPermissions()
+                    ->set([
+                        'plan' => $plan,
+                        'past_due' => false,
+                        'renews_next' => $subscription->current_period_end,
+                        'canceled' => false,
+                    ]);
                 $this->model->enforcePermissions();
 
                 $this->plan = $plan;
@@ -220,7 +218,7 @@ class BillingSubscription
         }
 
         // check if subscription is trialing
-        if ($this->model->trial_ends > time()) {
+        if ($this->model->trial_ends > time() && !$this->model->renews_next) {
             return 'trialing';
         }
 

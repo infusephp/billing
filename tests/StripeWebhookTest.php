@@ -237,8 +237,9 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $member = Mockery::mock();
         $member->shouldReceive('set')->withArgs([[
             'past_due' => false,
-            'trial_ends' => 100,
             'renews_next' => 101,
+            'canceled' => false,
+            'canceled_at' => null,
             'plan' => 'invoiced-growth', ]]);
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionCreated($event, $member));
@@ -255,7 +256,6 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $member = Mockery::mock();
         $member->shouldReceive('set')->withArgs([[
             'past_due' => false,
-            'trial_ends' => 100,
             'plan' => 'invoiced-startup', ]]);
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
@@ -273,8 +273,31 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $member = Mockery::mock();
         $member->shouldReceive('set')->withArgs([[
             'past_due' => true,
-            'trial_ends' => 100,
             'renews_next' => 101,
+            'canceled' => false,
+            'canceled_at' => null,
+            'trial_ends' => 0,
+            'plan' => 'invoiced-startup', ]]);
+
+        $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
+    }
+
+    public function testSubscriptionActive()
+    {
+        $event = new stdClass();
+        $event->status = 'active';
+        $event->trial_end = 100;
+        $event->current_period_end = 1000;
+        $event->plan = new stdClass();
+        $event->plan->id = 'invoiced-startup';
+
+        $member = Mockery::mock();
+        $member->shouldReceive('set')->withArgs([[
+            'past_due' => false,
+            'renews_next' => 1000,
+            'canceled' => false,
+            'canceled_at' => null,
+            'trial_ends' => 0,
             'plan' => 'invoiced-startup', ]]);
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
@@ -285,11 +308,15 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $event = new stdClass();
 
         $member = Mockery::mock();
-        $member->shouldReceive('set')->withArgs(['canceled', true]);
+        $member->shouldReceive('set')
+               ->withArgs(['canceled', true]);
+
         $email = [
             'subject' => 'Your subscription to Test Site has been canceled',
             'tags' => ['billing', 'subscription-canceled'], ];
-        $member->shouldReceive('sendEmail')->withArgs(['subscription-canceled', $email])->once();
+        $member->shouldReceive('sendEmail')
+               ->withArgs(['subscription-canceled', $email])
+               ->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionDeleted($event, $member));
     }

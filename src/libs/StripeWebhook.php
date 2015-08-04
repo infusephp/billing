@@ -134,12 +134,17 @@ class StripeWebhook extends WebhookController
     {
         $update = [
             'past_due' => $eventData->status == 'past_due',
-            'trial_ends' => $eventData->trial_end,
             'plan' => $eventData->plan->id,
         ];
 
         if (in_array($eventData->status, ['trialing', 'active', 'past_due'])) {
             $update['renews_next'] = $eventData->current_period_end;
+            $update['canceled'] = false;
+            $update['canceled_at'] = null;
+        }
+
+        if (!in_array($eventData->status, ['trialing', 'unpaid'])) {
+            $update['trial_ends'] = 0;
         }
 
         $member->set($update);
