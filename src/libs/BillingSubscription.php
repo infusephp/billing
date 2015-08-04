@@ -67,13 +67,19 @@ class BillingSubscription
 
             // update the user's billing state
             if (in_array($subscription->status, ['active', 'trialing'])) {
-                $this->model->grantAllPermissions();
-                $this->model->set([
+                $params = [
                     'plan' => $this->plan,
                     'past_due' => false,
                     'renews_next' => $subscription->current_period_end,
                     'canceled' => false,
-                ]);
+                    'canceled_at' => null,
+                ];
+
+                if ($subscription->status == 'active') {
+                    $params['trial_ends'] = 0;
+                }
+
+                $this->model->grantAllPermissions()->set($params);
                 $this->model->enforcePermissions();
 
                 return true;
@@ -128,13 +134,19 @@ class BillingSubscription
 
             // update the user's billing state
             if (in_array($subscription->status, ['active', 'trialing']) && $subscription->plan->id == $plan) {
-                $this->model->grantAllPermissions()
-                    ->set([
-                        'plan' => $plan,
-                        'past_due' => false,
-                        'renews_next' => $subscription->current_period_end,
-                        'canceled' => false,
-                    ]);
+                $params = [
+                    'plan' => $plan,
+                    'past_due' => false,
+                    'renews_next' => $subscription->current_period_end,
+                    'canceled' => false,
+                    'canceled_at' => null,
+                ];
+
+                if ($subscription->status == 'active') {
+                    $params['trial_ends'] = 0;
+                }
+
+                $this->model->grantAllPermissions()->set($params);
                 $this->model->enforcePermissions();
 
                 $this->plan = $plan;

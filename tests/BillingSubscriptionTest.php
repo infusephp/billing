@@ -133,19 +133,27 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
                  ->withArgs([[
                     'plan' => 'test',
                     'coupon' => 'favorite-customer', ]])
-                 ->andReturn($resultSub)->once();
+                 ->andReturn($resultSub)
+                 ->once();
 
         $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');
         $testModel->shouldReceive('get');
-        $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
-        $testModel->shouldReceive('grantAllPermissions');
+        $testModel->shouldReceive('stripeCustomer')
+                  ->andReturn($customer)
+                  ->once();
+        $testModel->shouldReceive('grantAllPermissions')
+                  ->andReturn($testModel);
+        $testModel->shouldReceive('set')
+                  ->withArgs([[
+                        'plan' => 'test',
+                        'past_due' => false,
+                        'renews_next' => 100,
+                        'canceled' => false,
+                        'canceled_at' => null,
+                        'trial_ends' => 0,
+                    ]])
+                  ->once();
         $testModel->shouldReceive('enforcePermissions');
-        $testModel->shouldReceive('set')->withArgs([[
-            'plan' => 'test',
-            'past_due' => false,
-            'renews_next' => 100,
-            'canceled' => false,
-        ]])->once();
 
         $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
@@ -160,20 +168,30 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $resultSub->trial_end = 100;
 
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'test', 'source' => 'tok_test']])
-            ->andReturn($resultSub)->once();
+        $customer->shouldReceive('updateSubscription')
+                 ->withArgs([[
+                    'plan' => 'test',
+                    'source' => 'tok_test', ]])
+                 ->andReturn($resultSub)
+                 ->once();
 
         $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');
         $testModel->shouldReceive('get');
-        $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
-        $testModel->shouldReceive('grantAllPermissions');
+        $testModel->shouldReceive('stripeCustomer')
+                  ->andReturn($customer)
+                  ->once();
+        $testModel->shouldReceive('grantAllPermissions')
+                  ->andReturn($testModel);
+        $testModel->shouldReceive('set')
+                  ->withArgs([[
+                        'plan' => 'test',
+                        'past_due' => false,
+                        'renews_next' => 100,
+                        'canceled' => false,
+                        'canceled_at' => null,
+                    ]])
+                  ->once();
         $testModel->shouldReceive('enforcePermissions');
-        $testModel->shouldReceive('set')->withArgs([[
-            'plan' => 'test',
-            'past_due' => false,
-            'renews_next' => 100,
-            'canceled' => false,
-        ]])->once();
 
         $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
@@ -188,20 +206,31 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $resultSub->trial_end = 0;
 
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'test', 'trial_end' => 'now']])
-            ->andReturn($resultSub)->once();
+        $customer->shouldReceive('updateSubscription')
+                 ->withArgs([[
+                    'plan' => 'test',
+                    'trial_end' => 'now', ]])
+                 ->andReturn($resultSub)
+                 ->once();
 
         $testModel = Mockery::mock('BillingModel', '\\app\\billing\\models\\BillableModel');
         $testModel->shouldReceive('get');
-        $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
-        $testModel->shouldReceive('grantAllPermissions');
+        $testModel->shouldReceive('stripeCustomer')
+                  ->andReturn($customer)
+                  ->once();
+        $testModel->shouldReceive('grantAllPermissions')
+                  ->andReturn($testModel);
+        $testModel->shouldReceive('set')
+                  ->withArgs([[
+                        'plan' => 'test',
+                        'past_due' => false,
+                        'renews_next' => 100,
+                        'canceled' => false,
+                        'canceled_at' => null,
+                        'trial_ends' => 0,
+                    ]])
+                  ->once();
         $testModel->shouldReceive('enforcePermissions');
-        $testModel->shouldReceive('set')->withArgs([[
-            'plan' => 'test',
-            'past_due' => false,
-            'renews_next' => 100,
-            'canceled' => false,
-        ]])->once();
 
         $subscription = new BillingSubscription($testModel, 'test', Test::$app);
 
@@ -281,6 +310,8 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
                     'past_due' => false,
                     'renews_next' => 100,
                     'canceled' => false,
+                    'canceled_at' => null,
+                    'trial_ends' => 0,
                   ]])
                   ->once();
         $testModel->shouldReceive('enforcePermissions');
