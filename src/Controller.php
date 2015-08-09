@@ -11,14 +11,16 @@ class Controller extends StripeWebhook
         'models' => [
             'BillingHistory',
         ],
-        'routes' => [
-            'post /billing/webhook' => 'webhook',
-            'get /billing/syncSubscriptions' => 'syncSubscriptions',
-            'get /billing/syncProfiles' => 'syncProfiles',
-        ],
     ];
 
     public static $scaffoldAdmin;
+
+    public function middleware($req, $res)
+    {
+        $this->app->post('/billing/webhook', 'webhook')
+                  ->get('/billing/syncSubscriptions', 'syncSubscriptions')
+                  ->get('/billing/syncProfiles', 'syncProfiles');
+    }
 
     ////////////////////////////
     // CRON JOBS
