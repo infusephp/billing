@@ -17,9 +17,9 @@ class Controller extends StripeWebhook
 
     public function middleware($req, $res)
     {
-        $this->app->post('/billing/webhook', 'webhook')
-                  ->get('/billing/syncSubscriptions', 'syncSubscriptions')
-                  ->get('/billing/syncProfiles', 'syncProfiles');
+        $this->app->post('/billing/webhook', ['billing\\Controller', 'webhook'])
+                  ->get('/billing/syncSubscriptions', ['billing\\Controller', 'syncSubscriptions'])
+                  ->get('/billing/syncProfiles', ['billing\\Controller', 'syncProfiles']);
     }
 
     ////////////////////////////
