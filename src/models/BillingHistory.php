@@ -21,38 +21,34 @@ class BillingHistory extends ACLModel
 
     public static $properties = [
         'uid' => [
-            'type' => 'number',
+            'type' => Model::TYPE_NUMBER,
         ],
         'payment_time' => [
-            'type' => 'date',
+            'type' => Model::TYPE_DATE,
             'admin_type' => 'datepicker',
         ],
         'amount' => [
-            'type' => 'number',
+            'type' => Model::TYPE_NUMBER,
             'searchable' => true,
             'admin_html' => '${amount}',
         ],
         'stripe_customer' => [
-            'type' => 'string',
             'searchable' => true,
             'admin_html' => '<a href="https://manage.stripe.com/customers/{stripe_customer}" target="_blank">{stripe_customer}</a>',
         ],
         'stripe_transaction' => [
-            'type' => 'string',
             'searchable' => true,
             'admin_html' => '<a href="https://manage.stripe.com/payments/{stripe_transaction}" target="_blank">{stripe_transaction}</a>',
         ],
         'description' => [
-            'type' => 'string',
             'searchable' => true,
             'admin_hidden_property' => true,
         ],
         'success' => [
-            'type' => 'boolean',
+            'type' => Model::TYPE_BOOLEAN,
             'admin_type' => 'checkbox',
         ],
         'error' => [
-            'type' => 'string',
             'null' => true,
             'searchable' => true,
             'admin_hidden_property' => true,

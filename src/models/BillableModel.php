@@ -12,54 +12,52 @@ abstract class BillableModel extends ACLModel
 {
     private static $billingProperties = [
         'plan' => [
-            'type' => 'string',
             'null' => true,
         ],
         'stripe_customer' => [
-            'type' => 'string',
             'null' => true,
             'hidden' => true,
             'admin_html' => '<a href="https://manage.stripe.com/customers/{stripe_customer}" target="_blank">{stripe_customer}</a>',
         ],
         'renews_next' => [
-            'type' => 'date',
+            'type' => Model::TYPE_DATE,
             'null' => true,
             'admin_type' => 'datepicker',
             'admin_hidden_property' => true,
         ],
         'trial_ends' => [
-            'type' => 'date',
+            'type' => Model::TYPE_DATE,
             'null' => true,
             'admin_type' => 'datepicker',
             'admin_hidden_property' => true,
         ],
         'past_due' => [
-            'type' => 'boolean',
+            'type' => Model::TYPE_BOOLEAN,
             'default' => false,
             'admin_type' => 'checkbox',
             'admin_hidden_property' => true,
         ],
         'canceled' => [
-            'type' => 'boolean',
+            'type' => Model::TYPE_BOOLEAN,
             'default' => false,
             'admin_type' => 'checkbox',
             'default' => false,
         ],
         'canceled_at' => [
-            'type' => 'date',
+            'type' => Model::TYPE_DATE,
             'null' => true,
             'admin_type' => 'datepicker',
             'admin_hidden_property' => true,
         ],
         'not_charged' => [
-            'type' => 'boolean',
+            'type' => Model::TYPE_BOOLEAN,
             'default' => false,
             'hidden' => true,
             'admin_type' => 'checkbox',
             'admin_hidden_property' => true,
         ],
         'last_trial_reminder' => [
-            'type' => 'date',
+            'type' => Model::TYPE_DATE,
             'null' => true,
             'hidden' => true,
             'admin_type' => 'datepicker',
