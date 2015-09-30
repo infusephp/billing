@@ -81,7 +81,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         Test::$app['config']->set('billing.model', 'TestBillingModel2');
         $staticModel = Mockery::mock('alias:TestBillingModel2');
-        $staticModel->shouldReceive('findOne')->andReturn($model);
+        $staticModel->shouldReceive('where->first')->andReturn($model);
 
         $event = [
             'id' => 'evt_test3',
@@ -119,7 +119,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         Test::$app['config']->set('billing.model', 'TestBillingModel2');
         $staticModel = Mockery::mock('alias:TestBillingModel2');
-        $staticModel->shouldReceive('findOne')->andReturn($model);
+        $staticModel->shouldReceive('where->first')->andReturn($model);
 
         $event = [
             'id' => 'evt_test',
