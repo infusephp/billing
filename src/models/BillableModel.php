@@ -3,11 +3,12 @@
 namespace app\billing\models;
 
 use infuse\Model;
+use infuse\Model\ACLModel;
 use Stripe\Stripe;
 use Stripe\Customer;
 use app\billing\libs\BillingSubscription;
 
-abstract class BillableModel extends Model
+abstract class BillableModel extends ACLModel
 {
     private static $billingProperties = [
         'plan' => [
