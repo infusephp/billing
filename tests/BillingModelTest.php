@@ -7,6 +7,11 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         require_once 'TestBillingModel.php';
     }
 
+    protected function tearDown()
+    {
+        TestBillingModel::setWhereMock(null);
+    }
+
     public function testCreate()
     {
         $this->markTestIncomplete();
@@ -134,7 +139,8 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         Test::$app['config']->set('billing.emails.trial_ended', true);
         $model::inject(Test::$app);
 
-        $findAllMock = Mockery::mock();
+        $modelMock = Mockery::mock();
+        $whereMock = Mockery::mock();
 
         $member = Mockery::mock();
         $email = [
@@ -144,13 +150,17 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $member->shouldReceive('grantAllPermissions');
         $member->shouldReceive('set')->withArgs(['last_trial_reminder', time()]);
 
-        $findAllMock->shouldReceive('findAll')
-            ->withArgs([['where' => [
+        $modelMock->shouldReceive('where')
+            ->withArgs([[
                 'trial_ends >= '.strtotime('+2 days'),
                 'trial_ends <= '.strtotime('+3 days'),
                 'canceled' => 0,
-                'last_trial_reminder IS NULL', ]]])
-            ->andReturn([$member])->once();
+                'last_trial_reminder IS NULL', ]])
+            ->andReturn($whereMock);
+
+        $whereMock->shouldReceive('all')
+                  ->andReturn([$member])
+                  ->once();
 
         $member2 = Mockery::mock();
         $email2 = [
@@ -160,14 +170,22 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $member2->shouldReceive('grantAllPermissions');
         $member2->shouldReceive('set')->withArgs(['last_trial_reminder', time()]);
 
-        $findAllMock->shouldReceive('findAll')->withArgs([['where' => [
-            'trial_ends > 0',
-            'trial_ends < '.time(),
-            'renews_next' => 0,
-            'canceled' => 0,
-            '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ]]])->andReturn([$member2])->once();
+        $whereMock2 = Mockery::mock();
 
-        TestBillingModel::setFindAllMock($findAllMock);
+        $modelMock->shouldReceive('where')
+            ->withArgs([[
+                'trial_ends > 0',
+                'trial_ends < '.time(),
+                'renews_next' => 0,
+                'canceled' => 0,
+                '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ]])
+            ->andReturn($whereMock2);
+
+        $whereMock2->shouldReceive('all')
+                   ->andReturn([$member2])
+                   ->once();
+
+        TestBillingModel::setWhereMock($modelMock);
 
         $this->assertTrue(TestBillingModel::sendTrialReminders(false));
     }

@@ -5,7 +5,7 @@ use app\billing\models\BillableModel;
 
 class TestBillingModel extends BillableModel
 {
-    public static $findAllMock;
+    public static $whereMock;
 
     protected function hasPermission($permission, Model $requester)
     {
@@ -18,13 +18,13 @@ class TestBillingModel extends BillableModel
             'description' => 'TestBillingModel('.$this->id.')', ];
     }
 
-    public static function setFindAllMock($mock)
+    public static function setWhereMock($mock)
     {
-        self::$findAllMock = $mock;
+        self::$whereMock = $mock;
     }
 
-    public static function findAll(array $params = [])
+    public static function where($params)
     {
-        return self::$findAllMock->findAll($params);
+        return self::$whereMock ? self::$whereMock->where($params) : parent::where($params);
     }
 }
