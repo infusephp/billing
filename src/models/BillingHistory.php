@@ -12,8 +12,8 @@
  */
 namespace app\billing\models;
 
-use infuse\Model;
-use infuse\Model\ACLModel;
+use Infuse\Model;
+use Infuse\Model\ACLModel;
 
 class BillingHistory extends ACLModel
 {

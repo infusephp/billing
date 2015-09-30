@@ -2,8 +2,8 @@
 
 namespace app\billing\models;
 
-use infuse\Model;
-use infuse\Model\ACLModel;
+use Infuse\Model;
+use Infuse\Model\ACLModel;
 use Stripe\Stripe;
 use Stripe\Customer;
 use app\billing\libs\BillingSubscription;

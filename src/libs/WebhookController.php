@@ -22,8 +22,8 @@ class WebhookController
     /**
      * Route to handle an incoming webhook.
      *
-     * @param infuse\Request  $req
-     * @param infuse\Response $res
+     * @param Infuse\Request  $req
+     * @param Infuse\Response $res
      */
     public function webhook($req, $res)
     {
