@@ -164,7 +164,7 @@ abstract class BillableModel extends Model
      *
      * @param string $token
      *
-     * @return boolean
+     * @return bool
      */
     public function setDefaultCard($token)
     {
@@ -212,7 +212,7 @@ abstract class BillableModel extends Model
     /**
      * Sends out trial reminders - trial_will_end and trial_ended.
      *
-     * @return boolean
+     * @return bool
      */
     public static function sendTrialReminders($echoOutput = true)
     {
@@ -225,12 +225,12 @@ abstract class BillableModel extends Model
             $end = time() + self::$trialWillEndReminderDays * 86400;
             $start = $end - 86400;
 
-            $members = static::findAll([
-                'where' => [
+            $members = static::where([
                     'trial_ends >= '.$start,
                     'trial_ends <= '.$end,
                     'canceled' => 0,
-                    'last_trial_reminder IS NULL', ], ]);
+                    'last_trial_reminder IS NULL', ])
+                ->all();
 
             $n = 0;
             foreach ($members as $member) {
@@ -242,7 +242,7 @@ abstract class BillableModel extends Model
                 $member->grantAllPermissions();
                 $member->set('last_trial_reminder', time());
 
-                $n++;
+                ++$n;
             }
 
             if ($echoOutput) {
@@ -253,13 +253,13 @@ abstract class BillableModel extends Model
         /* Trial Ended Reminders */
 
         if ($config->get('billing.emails.trial_ended')) {
-            $members = static::findAll([
-                'where' => [
+            $members = static::where([
                     'trial_ends > 0',
                     'trial_ends < '.time(),
                     'renews_next' => 0,
                     'canceled' => 0,
-                    '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ], ]);
+                    '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ])
+                ->all();
 
             $n = 0;
             foreach ($members as $member) {
@@ -271,7 +271,7 @@ abstract class BillableModel extends Model
                 $member->grantAllPermissions();
                 $member->set('last_trial_reminder', time());
 
-                $n++;
+                ++$n;
             }
 
             if ($echoOutput) {

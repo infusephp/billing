@@ -49,12 +49,12 @@ class Controller extends StripeWebhook
         // and is VERY DATABASE INTENSIVE
 
         $modelClass = $this->app['config']->get('billing.model');
-        $models = $modelClass::findAll([
-            'where' => [
+        $models = $modelClass::where([
                 'canceled' => 0,
                 'not_charged' => 0,
-                'stripe_customer <> ""', ],
-            'sort' => 'id ASC', ]);
+                'stripe_customer <> ""', ])
+            ->sort('id ASC')
+            ->all();
 
         $affected = 0;
 
@@ -107,12 +107,12 @@ class Controller extends StripeWebhook
             // $diff = array_diff_assoc( $memberUpdateData, $currentMemberData );
 
             if (count($diff) > 0) {
-                echo "Need to update billing data for company # ".$member->id().":\n";
+                echo 'Need to update billing data for company # '.$member->id().":\n";
 
                 echo "-- Difference:\n";
                 print_r($diff);
 
-                $affected++;
+                ++$affected;
 
                 // update subscription information
                 if ($doIt) {
@@ -140,10 +140,9 @@ class Controller extends StripeWebhook
         // and is VERY DATABASE INTENSIVE
 
         $modelClass = $this->app['config']->get('billing.model');
-        $models = $modelClass::findAll([
-            'where' => [
-                'stripe_customer <> ""', ],
-            'sort' => 'id ASC', ]);
+        $models = $modelClass::where(['stripe_customer <> ""'])
+            ->sort('id ASC')
+            ->all();
 
         $affected = 0;
 
@@ -180,11 +179,11 @@ class Controller extends StripeWebhook
             }
 
             if ($diff) {
-                echo "Need to update billing data for company # ".$member->id().":\n";
+                echo 'Need to update billing data for company # '.$member->id().":\n";
 
                 try {
                     if ($customer->save()) {
-                        $affected++;
+                        ++$affected;
                         echo "\tok\n";
                     } else {
                         echo "\tfail\n";
