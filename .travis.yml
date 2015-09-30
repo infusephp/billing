@@ -5,7 +5,7 @@ php:
     - 5.4
     - hhvm
 
-sudo: true
+sudo: false
 
 services:
   - redis-server
