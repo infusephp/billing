@@ -32,11 +32,11 @@ class BillingSubscription
      * Creates a new Stripe subscription. If a token is provided it will
      * become the new default source for the customer.
      *
-     * @param string  $token   optional Stripe token to use for the plan
-     * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
-     * @param array   $params  optional parameters to pass to stripe when creating subscription
+     * @param string $token   optional Stripe token to use for the plan
+     * @param bool   $noTrial when true, immediately ends (skips) the trial period for the new subscription
+     * @param array  $params  optional parameters to pass to stripe when creating subscription
      *
-     * @return boolean
+     * @return bool
      */
     public function create($token = false, $noTrial = false, array $params = [])
     {
@@ -85,10 +85,10 @@ class BillingSubscription
                 return true;
             }
         } catch (\Exception $e) {
-            $this->app[ 'errors' ]->push([
+            $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
-            $this->app[ 'logger' ]->debug($e);
+            $this->app['logger']->debug($e);
         }
 
         return false;
@@ -97,11 +97,11 @@ class BillingSubscription
     /**
      * Changes the plan the member is subscribed to.
      *
-     * @param string  $plan    stripe plan id
-     * @param boolean $noTrial when true, immediately ends (skips) the trial period for the new subscription
-     * @param array   $params  optional parameters to pass to stripe when creating subscription
+     * @param string $plan    stripe plan id
+     * @param bool   $noTrial when true, immediately ends (skips) the trial period for the new subscription
+     * @param array  $params  optional parameters to pass to stripe when creating subscription
      *
-     * @return boolean result
+     * @return bool result
      */
     public function change($plan, $noTrial = false, array $params = [])
     {
@@ -154,8 +154,10 @@ class BillingSubscription
                 return true;
             }
         } catch (\Exception $e) {
-            $this->app[ 'errors' ]->push([ 'error' => 'stripe_error', 'message' => $e->getMessage() ]);
-            $this->app[ 'logger' ]->debug($e);
+            $this->app['errors']->push([
+                'error' => 'stripe_error',
+                'message' => $e->getMessage(), ]);
+            $this->app['logger']->debug($e);
         }
 
         return false;
@@ -164,7 +166,7 @@ class BillingSubscription
     /**
      * Cancels the subscription.
      *
-     * @return boolean
+     * @return bool
      */
     public function cancel()
     {
@@ -205,8 +207,10 @@ class BillingSubscription
                 return true;
             }
         } catch (\Exception $e) {
-            $this->app[ 'logger' ]->debug($e);
-            $this->app[ 'errors' ]->push([ 'error' => 'stripe_error', 'message' => $e->getMessage() ]);
+            $this->app['logger']->debug($e);
+            $this->app['errors']->push([
+                'error' => 'stripe_error',
+                'message' => $e->getMessage(), ]);
         }
 
         return false;
@@ -257,18 +261,17 @@ class BillingSubscription
     /**
      * Checks if the model's subscription is active.
      *
-     * @return boolean
+     * @return bool
      */
     public function active()
     {
-        return in_array($this->status(),
-            [ 'active', 'trialing', 'past_due' ]);
+        return in_array($this->status(), ['active', 'trialing', 'past_due']);
     }
 
     /**
      * Checks if the model's subscription is canceled.
      *
-     * @return boolean
+     * @return bool
      */
     public function canceled()
     {
@@ -278,7 +281,7 @@ class BillingSubscription
     /**
      * Checks if the model's subscription is in a trial period.
      *
-     * @return boolean
+     * @return bool
      */
     public function trialing()
     {
