@@ -77,6 +77,18 @@ class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($sub->active());
     }
 
+    public function testStatusActiveNotRenewedYet()
+    {
+        $testModel = new TestBillingModel();
+        $testModel->plan = 'test';
+        $testModel->renews_next = time() - 1000;
+        $testModel->past_due = false;
+        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+
+        $this->assertEquals('active', $sub->status());
+        $this->assertTrue($sub->active());
+    }
+
     public function testStatusTrialing()
     {
         $testModel = new TestBillingModel();

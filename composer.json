@@ -23,10 +23,11 @@
 		"stripe/stripe-php": "2.1.*"
 	},
 	"require-dev": {
-		"infuse/bootstrap": "~1.2",
-		"infuse/auth": "~1.1",
+		"infuse/bootstrap": "dev-master",
+		"infuse/auth": "dev-master",
 		"satooshi/php-coveralls": "dev-master",
 		"mockery/mockery": "0.9.1",
 		"infuse/libs": "dev-master as 0.4.x-dev"
-	}
+	},
+	"minimum-stability": "dev"
 }

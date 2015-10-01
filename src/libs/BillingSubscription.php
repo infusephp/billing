@@ -238,23 +238,35 @@ class BillingSubscription
             return 'trialing';
         }
 
-        // flag to skip charging this model - unless
-        // `trialing` or `canceled` the subscription is always active
+        // flag to skip charging this model - unless `trialing`
+        // or `canceled`, the subscription is always active
         if ($this->model->not_charged) {
             return 'active';
         }
 
-        // check if the subscription is active or trialing
+        // when the next renewal date is in the future then
+        // we can say with certainty the subscription is active
         if ($this->model->renews_next > time()) {
             return 'active';
         }
 
-        // the subscription is past due when its status has been changed
-        // to past_due on stripe
+        // the subscription is past due when its status has been
+        // changed to past_due on Stripe
         if ($this->model->past_due) {
             return 'past_due';
         }
 
+        // Stripe occasionally gets behind on processing
+        // subscriptions which leaves the `renews_next` property
+        // out of date. When that happens just assume the
+        // subscription is active until told otherwise.
+        if ($this->model->renews_next > 0) {
+            return 'active';
+        }
+
+        // When the trial has ended, the subscription has not
+        // been canceled, and no future renewals are scheduled
+        // then the subscription is considered `unpaid`.
         return 'unpaid';
     }
 
