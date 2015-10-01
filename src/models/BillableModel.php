@@ -71,6 +71,13 @@ abstract class BillableModel extends ACLModel
      */
     public static $trialWillEndReminderDays = 3;
 
+    protected function initialize()
+    {
+        static::$properties = array_replace(static::$properties, self::$billingProperties);
+
+        parent::initialize();
+    }
+
     /**
      * Returns data for this model to be set when creating Stripe Customers.
      *
@@ -81,11 +88,6 @@ abstract class BillableModel extends ACLModel
     ////////////////////
     // HOOKS
     ////////////////////
-
-    protected static function propertiesHook()
-    {
-        return array_replace(parent::propertiesHook(), self::$billingProperties);
-    }
 
     protected function preCreateHook(&$data)
     {
