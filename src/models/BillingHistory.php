@@ -19,7 +19,7 @@ class BillingHistory extends ACLModel
 {
     public static $scaffoldApi;
 
-    public static $properties = [
+    protected static $properties = [
         'uid' => [
             'type' => Model::TYPE_NUMBER,
         ],
