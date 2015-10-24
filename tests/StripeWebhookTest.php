@@ -168,6 +168,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\\app\\billing\\models\\BillingHistory', $history);
 
         $expected = [
+            'id' => $history->id(),
             'uid' => 100,
             'payment_time' => 12,
             'amount' => 10,
@@ -175,8 +176,9 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
             'stripe_transaction' => 'charge_failed',
             'description' => 'Descr',
             'success' => false,
-            'error' => 'Fail!', ];
-        $this->assertEquals($expected, $history->toArray(['id']));
+            'error' => 'Fail!',
+        ];
+        $this->assertEquals($expected, $history->toArray());
     }
 
     public function testChargeSucceeded()
@@ -216,6 +218,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $this->assertInstanceOf('\\app\\billing\\models\\BillingHistory', $history);
 
         $expected = [
+            'id' => $history->id(),
             'uid' => 100,
             'payment_time' => 12,
             'amount' => 10,
@@ -223,8 +226,9 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
             'stripe_transaction' => 'charge_succeeded',
             'description' => 'Descr',
             'success' => true,
-            'error' => null, ];
-        $this->assertEquals($expected, $history->toArray(['id']));
+            'error' => null,
+        ];
+        $this->assertEquals($expected, $history->toArray());
     }
 
     public function testSubscriptionCreated()

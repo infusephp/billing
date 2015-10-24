@@ -16,7 +16,6 @@ abstract class BillableModel extends ACLModel
         ],
         'stripe_customer' => [
             'null' => true,
-            'hidden' => true,
             'admin_html' => '<a href="https://manage.stripe.com/customers/{stripe_customer}" target="_blank">{stripe_customer}</a>',
         ],
         'renews_next' => [
@@ -52,14 +51,12 @@ abstract class BillableModel extends ACLModel
         'not_charged' => [
             'type' => Model::TYPE_BOOLEAN,
             'default' => false,
-            'hidden' => true,
             'admin_type' => 'checkbox',
             'admin_hidden_property' => true,
         ],
         'last_trial_reminder' => [
             'type' => Model::TYPE_DATE,
             'null' => true,
-            'hidden' => true,
             'admin_type' => 'datepicker',
             'admin_hidden_property' => true,
         ],
@@ -74,6 +71,8 @@ abstract class BillableModel extends ACLModel
     protected function initialize()
     {
         static::$properties = array_replace(static::$properties, self::$billingProperties);
+
+        static::$hidden = array_merge(static::$hidden, ['stripe_customer', 'not_charged', 'last_trial_reminder']);
 
         parent::initialize();
     }
