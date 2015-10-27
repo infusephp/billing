@@ -35,6 +35,18 @@ composer require infuse/billing
 ]
 ```
 
+And add the console command to run jobs to `modules.commands` in your app's configuration:
+```php
+'modules' => [
+	// ...
+	'commands' => [
+		// ...
+		'app\billing\console\SyncStripeSubscriptionsCommand',
+		'app\billing\console\SyncStripeProfilesCommand'
+	]
+]
+```
+
 3. Add the following cron job to `cron.php`:
 ```php
 [
