@@ -176,8 +176,8 @@ class BillingSubscription
 
         // no stripe customer means we have no subscription to cancel
         if (!$this->model->stripe_customer) {
-            $this->model->grantAllPermissions();
-            $this->model->set('canceled', true);
+            $this->model->canceled = true;
+            $this->model->grantAllPermissions()->save();
 
             // send an email
             if ($this->app['config']->get('billing.emails.subscription_canceled')) {
@@ -200,8 +200,8 @@ class BillingSubscription
             $subscription = $customer->cancelSubscription();
 
             if ($subscription->status == 'canceled') {
-                $this->model->grantAllPermissions();
-                $this->model->set('canceled', true);
+                $this->model->canceled = true;
+                $this->model->grantAllPermissions()->save();
                 $this->model->enforcePermissions();
 
                 return true;

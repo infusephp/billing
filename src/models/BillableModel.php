@@ -142,8 +142,8 @@ abstract class BillableModel extends ACLModel
             $customer = Customer::create($this->stripeCustomerData(), $apiKey);
 
             // save the new customer id on the model
-            $this->grantAllPermissions();
-            $this->set('stripe_customer', $customer->id);
+            $this->stripe_customer = $customer->id;
+            $this->grantAllPermissions()->save();
             $this->enforcePermissions();
 
             return $customer;
@@ -239,8 +239,8 @@ abstract class BillableModel extends ACLModel
                         'subject' => 'Your trial ends soon on '.$config->get('site.title'),
                         'tags' => ['billing', 'trial-will-end'], ]);
 
-                $member->grantAllPermissions();
-                $member->set('last_trial_reminder', time());
+                $member->last_trial_reminder = time();
+                $member->grantAllPermissions()->save();
 
                 ++$n;
             }
@@ -268,8 +268,8 @@ abstract class BillableModel extends ACLModel
                         'subject' => 'Your '.$config->get('site.title').' trial has ended',
                         'tags' => ['billing', 'trial-ended'], ]);
 
-                $member->grantAllPermissions();
-                $member->set('last_trial_reminder', time());
+                $member->last_trial_reminder = time();
+                $member->grantAllPermissions()->save();
 
                 ++$n;
             }

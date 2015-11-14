@@ -13,7 +13,7 @@ class StripeWebhook extends WebhookController
      * @param object $eventData
      * @param object $member
      *
-     * @return boolean
+     * @return bool
      */
     public function handleChargeFailed($eventData, $member)
     {
@@ -65,7 +65,7 @@ class StripeWebhook extends WebhookController
      * @param object $eventData
      * @param object $member
      *
-     * @return boolean
+     * @return bool
      */
     public function handleChargeSucceeded($eventData, $member)
     {
@@ -115,7 +115,7 @@ class StripeWebhook extends WebhookController
      * @param object $eventData
      * @param object $member
      *
-     * @return boolean
+     * @return bool
      */
     public function handleCustomerSubscriptionCreated($eventData, $member)
     {
@@ -128,7 +128,7 @@ class StripeWebhook extends WebhookController
      * @param object $eventData
      * @param object $member
      *
-     * @return boolean
+     * @return bool
      */
     public function handleCustomerSubscriptionUpdated($eventData, $member)
     {
@@ -158,11 +158,12 @@ class StripeWebhook extends WebhookController
      * @param object $eventData
      * @param object $member
      *
-     * @return boolean
+     * @return bool
      */
     public function handleCustomerSubscriptionDeleted($eventData, $member)
     {
-        $member->set('canceled', true);
+        $member->canceled = true;
+        $member->save();
 
         if ($this->app['config']->get('billing.emails.subscription_canceled')) {
             $member->sendEmail(
