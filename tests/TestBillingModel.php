@@ -1,7 +1,7 @@
 <?php
 
 use Infuse\Model;
-use app\billing\models\BillableModel;
+use App\Billing\Models\BillableModel;
 
 class TestBillingModel extends BillableModel
 {

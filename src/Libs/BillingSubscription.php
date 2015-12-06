@@ -1,9 +1,9 @@
 <?php
 
-namespace app\billing\libs;
+namespace App\Billing\Libs;
 
-use app\billing\models\BillableModel;
 use App;
+use App\Billing\Models\BillableModel;
 
 class BillingSubscription
 {

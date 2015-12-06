@@ -124,11 +124,11 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $testModel->plan = 'test';
 
         $subscription = $testModel->subscription();
-        $this->assertInstanceOf('\\app\\billing\\libs\\BillingSubscription', $subscription);
+        $this->assertInstanceOf('App\Billing\Libs\BillingSubscription', $subscription);
         $this->assertEquals('test', $subscription->plan());
 
         $subscription = $testModel->subscription('blah');
-        $this->assertInstanceOf('\\app\\billing\\libs\\BillingSubscription', $subscription);
+        $this->assertInstanceOf('App\Billing\Libs\BillingSubscription', $subscription);
         $this->assertEquals('blah', $subscription->plan());
     }
 

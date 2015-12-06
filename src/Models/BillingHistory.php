@@ -10,7 +10,7 @@
  * @copyright 2013 Jared King
  * @license MIT
  */
-namespace app\billing\models;
+namespace App\Billing\Models;
 
 use Infuse\Model;
 use Infuse\Model\ACLModel;

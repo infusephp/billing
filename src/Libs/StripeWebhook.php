@@ -1,9 +1,9 @@
 <?php
 
-namespace app\billing\libs;
+namespace App\Billing\Libs;
 
+use App\Billing\Models\BillingHistory;
 use Stripe\Customer;
-use app\billing\models\BillingHistory;
 
 class StripeWebhook extends WebhookController
 {

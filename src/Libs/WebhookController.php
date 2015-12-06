@@ -1,6 +1,6 @@
 <?php
 
-namespace app\billing\libs;
+namespace App\Billing\Libs;
 
 use ICanBoogie\Inflector;
 use Stripe\Event;

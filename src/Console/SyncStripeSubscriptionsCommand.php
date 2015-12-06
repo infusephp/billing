@@ -8,7 +8,7 @@
  * @copyright 2015 Jared King
  * @license MIT
  */
-namespace app\billing\console;
+namespace App\Billing\Console;
 
 use Stripe\Stripe;
 use Symfony\Component\Console\Command\Command;

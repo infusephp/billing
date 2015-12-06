@@ -1,8 +1,8 @@
 <?php
 
-namespace app\billing;
+namespace App\Billing;
 
-use app\billing\libs\StripeWebhook;
+use App\Billing\Libs\StripeWebhook;
 
 class Controller extends StripeWebhook
 {

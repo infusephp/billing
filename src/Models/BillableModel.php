@@ -1,12 +1,12 @@
 <?php
 
-namespace app\billing\models;
+namespace App\Billing\Models;
 
 use Infuse\Model;
 use Infuse\Model\ACLModel;
 use Stripe\Stripe;
 use Stripe\Customer;
-use app\billing\libs\BillingSubscription;
+use App\Billing\Libs\BillingSubscription;
 
 abstract class BillableModel extends ACLModel
 {

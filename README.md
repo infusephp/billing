@@ -20,7 +20,7 @@ composer require infuse/billing
 2. Add a billing section to your `config.php`:
 ```php
 [
-	'model' => '\\app\\users\\models\\User',
+	'model' => 'App\Users\Models\\User',
 	'emails' => [
 		'trial_will_end' => true,
 		'trial_ended' => true,
@@ -41,8 +41,8 @@ And add the console command to run jobs to `modules.commands` in your app's conf
 	// ...
 	'commands' => [
 		// ...
-		'app\billing\console\SyncStripeSubscriptionsCommand',
-		'app\billing\console\SyncStripeProfilesCommand'
+		'App\Billing\Console\SyncStripeSubscriptionsCommand',
+		'App\Billing\Console\SyncStripeProfilesCommand'
 	]
 ]
 ```
