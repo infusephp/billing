@@ -16,7 +16,8 @@ class Controller extends StripeWebhook
 
     public function middleware($req, $res)
     {
-        $this->app->post('/billing/webhook', ['billing\Controller', 'webhook']);
+        // add routes
+        $this->app->post('/billing/webhook', ['App\Billing\Controller', 'webhook']);
     }
 
     public function sendTrialReminders()
