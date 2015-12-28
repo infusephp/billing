@@ -56,3 +56,16 @@ And add the console command to run jobs to `modules.commands` in your app's conf
     'expires' => 1800, // 30 minutes
 ]
 ```
+
+4. (optional) Add an endpoint to your routing table to receive Stripe webhooks:
+
+```php
+'routes' => [
+	// ...
+	'POST /billing/webhook' => [
+		'App\Billing\Controller',
+		'webhook'
+    ]
+	// ...
+]
+```

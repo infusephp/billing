@@ -14,12 +14,6 @@ class Controller extends StripeWebhook
 
     public static $scaffoldAdmin;
 
-    public function middleware($req, $res)
-    {
-        // add routes
-        $this->app->post('/billing/webhook', ['App\Billing\Controller', 'webhook']);
-    }
-
     public function sendTrialReminders()
     {
         $modelClass = $this->app['config']->get('billing.model');
