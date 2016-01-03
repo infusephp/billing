@@ -12,10 +12,9 @@
  */
 namespace App\Billing\Models;
 
-use Infuse\Model;
-use Infuse\Model\ACLModel;
+use Pulsar\Model;
 
-class BillingHistory extends ACLModel
+class BillingHistory extends Model
 {
     public static $scaffoldApi;
 
@@ -54,9 +53,4 @@ class BillingHistory extends ACLModel
             'admin_hidden_property' => true,
         ],
     ];
-
-    protected function hasPermission($permission, Model $requester)
-    {
-        return $requester->isAdmin();
-    }
 }

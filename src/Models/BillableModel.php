@@ -2,11 +2,12 @@
 
 namespace App\Billing\Models;
 
-use Infuse\Model;
-use Infuse\Model\ACLModel;
-use Stripe\Stripe;
-use Stripe\Customer;
 use App\Billing\Libs\BillingSubscription;
+use Pulsar\Model;
+use Pulsar\ACLModel;
+use Stripe\Customer;
+use Stripe\Error\Base as StripeError;
+use Stripe\Stripe;
 
 abstract class BillableModel extends ACLModel
 {
@@ -124,7 +125,7 @@ abstract class BillableModel extends ACLModel
             if ($custId = $this->stripe_customer) {
                 return Customer::retrieve($custId, $apiKey);
             }
-        } catch (\Exception $e) {
+        } catch (StripeError $e) {
             $this->app['logger']->debug($e);
             $this->app['errors']->push([
                 'error' => 'stripe_error',
@@ -147,7 +148,7 @@ abstract class BillableModel extends ACLModel
             $this->enforcePermissions();
 
             return $customer;
-        } catch (\Exception $e) {
+        } catch (StripeError $e) {
             $this->app['logger']->debug($e);
             $this->app['errors']->push([
                 'error' => 'stripe_error',
@@ -183,7 +184,7 @@ abstract class BillableModel extends ACLModel
             $customer->save();
 
             return true;
-        } catch (\Exception $e) {
+        } catch (StripeError $e) {
             $this->app['logger']->debug($e);
             $this->app['errors']->push([
                 'error' => 'stripe_error',
@@ -236,7 +237,7 @@ abstract class BillableModel extends ACLModel
             foreach ($members as $member) {
                 $member->sendEmail(
                     'trial-will-end', [
-                        'subject' => 'Your trial ends soon on '.$config->get('site.title'),
+                        'subject' => 'Your trial ends soon on '.$config->get('app.title'),
                         'tags' => ['billing', 'trial-will-end'], ]);
 
                 $member->last_trial_reminder = time();
@@ -265,7 +266,7 @@ abstract class BillableModel extends ACLModel
             foreach ($members as $member) {
                 $member->sendEmail(
                     'trial-ended', [
-                        'subject' => 'Your '.$config->get('site.title').' trial has ended',
+                        'subject' => 'Your '.$config->get('app.title').' trial has ended',
                         'tags' => ['billing', 'trial-ended'], ]);
 
                 $member->last_trial_reminder = time();

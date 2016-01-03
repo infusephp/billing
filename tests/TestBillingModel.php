@@ -1,11 +1,12 @@
 <?php
 
-use Infuse\Model;
 use App\Billing\Models\BillableModel;
+use Pulsar\Model;
 
 class TestBillingModel extends BillableModel
 {
     public static $whereMock;
+    protected static $hidden = [];
 
     protected function hasPermission($permission, Model $requester)
     {
@@ -15,7 +16,8 @@ class TestBillingModel extends BillableModel
     public function stripeCustomerData()
     {
         return [
-            'description' => 'TestBillingModel('.$this->id.')', ];
+            'description' => 'TestBillingModel('.$this->id.')',
+        ];
     }
 
     public static function setWhereMock($mock)

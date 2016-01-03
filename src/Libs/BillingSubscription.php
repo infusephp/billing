@@ -2,7 +2,7 @@
 
 namespace App\Billing\Libs;
 
-use App;
+use Infuse\Application;
 use App\Billing\Models\BillableModel;
 
 class BillingSubscription
@@ -11,7 +11,7 @@ class BillingSubscription
     private $plan;
     private $app;
 
-    public function __construct(BillableModel $model, $plan, App $app)
+    public function __construct(BillableModel $model, $plan, Application $app)
     {
         $this->model = $model;
         $this->plan = $plan;
@@ -183,7 +183,7 @@ class BillingSubscription
             if ($this->app['config']->get('billing.emails.subscription_canceled')) {
                 $this->model->sendEmail(
                     'subscription-canceled', [
-                        'subject' => 'Your subscription to '.$this->app['config']->get('site.title').' has been canceled',
+                        'subject' => 'Your subscription to '.$this->app['config']->get('app.title').' has been canceled',
                         'tags' => ['billing', 'subscription-canceled'], ]);
             }
 

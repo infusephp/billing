@@ -3,11 +3,13 @@
 namespace App\Billing\Libs;
 
 use ICanBoogie\Inflector;
+use Infuse\Application;
+use Infuse\HasApp;
 use Stripe\Event;
 
 class WebhookController
 {
-    use \InjectApp;
+    use HasApp;
 
     const ERROR_GENERIC = 'error';
     const ERROR_INVALID_EVENT = 'invalid_event';
@@ -44,8 +46,9 @@ class WebhookController
         }
 
         // check that the livemode matches our development state
-        if (!($event['livemode'] && $this->app['config']->get('site.production-level') ||
-            !$event['livemode'] && !$this->app['config']->get('site.production-level'))) {
+        $environment = $this->app['environment'];
+        if (!($event['livemode'] && $environment === Application::ENV_PRODUCTION ||
+            !$event['livemode'] && $environment !== Application::ENV_PRODUCTION)) {
             return self::ERROR_LIVEMODE_MISMATCH;
         }
 

@@ -1,8 +1,9 @@
 <?php
 
 use App\Billing\Libs\BillingSubscription;
+use Infuse\Test;
 
-class BillingSubscriptionTest extends \PHPUnit_Framework_TestCase
+class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 {
     public static function setUpBeforeClass()
     {

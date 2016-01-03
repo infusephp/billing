@@ -1,6 +1,9 @@
 <?php
 
-class BillingModelTest extends \PHPUnit_Framework_TestCase
+use Infuse\Test;
+use Stripe\Error\Api as StripeError;
+
+class BillingModelTest extends PHPUnit_Framework_TestCase
 {
     public static function setUpBeforeClass()
     {
@@ -29,8 +32,11 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
 
         $customer = new stdClass();
 
-        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
-        $staticCustomer->shouldReceive('retrieve')->withArgs(['cust_test', 'apiKey'])->andReturn($customer)->once();
+        $staticCustomer = Mockery::mock('alias:Stripe\Customer');
+        $staticCustomer->shouldReceive('retrieve')
+                       ->withArgs(['cust_test', 'apiKey'])
+                       ->andReturn($customer)
+                       ->once();
 
         $this->assertEquals($customer, $testModel->stripeCustomer());
     }
@@ -40,8 +46,10 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $testModel = new TestBillingModel();
         $testModel->stripe_customer = 'cust_test';
 
-        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
-        $staticCustomer->shouldReceive('retrieve')->withArgs(['cust_test', 'apiKey'])->andThrow(new Exception())->once();
+        $staticCustomer = Mockery::mock('alias:Stripe\Customer');
+        $staticCustomer->shouldReceive('retrieve')
+                       ->withArgs(['cust_test', 'apiKey'])
+                       ->andThrow(new StripeError('retrieve mock error'))->once();
 
         $this->assertFalse($testModel->stripeCustomer());
     }
@@ -53,12 +61,16 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $customer = new stdClass();
         $customer->id = 'cust_test';
 
-        $staticStripe = Mockery::mock('alias:Stripe\\Stripe');
-        $staticStripe->shouldReceive('setApiKey')->withArgs(['apiKey'])->once();
+        $staticStripe = Mockery::mock('alias:Stripe\Stripe');
+        $staticStripe->shouldReceive('setApiKey')
+                     ->withArgs(['apiKey'])
+                     ->once();
 
-        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
-        $staticCustomer->shouldReceive('create')->withArgs([['description' => 'TestBillingModel(1)'], 'apiKey'])
-            ->andReturn($customer)->once();
+        $staticCustomer = Mockery::mock('alias:Stripe\Customer');
+        $staticCustomer->shouldReceive('create')
+                       ->withArgs([['description' => 'TestBillingModel(1)'], 'apiKey'])
+                       ->andReturn($customer)
+                       ->once();
 
         $this->assertEquals($customer, $testModel->stripeCustomer());
     }
@@ -68,12 +80,14 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $testModel = new TestBillingModel(1);
         $testModel->stripe_customer = false;
 
-        $staticStripe = Mockery::mock('alias:Stripe\\Stripe');
+        $staticStripe = Mockery::mock('alias:Stripe\Stripe');
         $staticStripe->shouldReceive('setApiKey')->withArgs(['apiKey'])->once();
 
-        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
-        $staticCustomer->shouldReceive('create')->withArgs([['description' => 'TestBillingModel(1)'], 'apiKey'])
-            ->andThrow(new Exception())->once();
+        $staticCustomer = Mockery::mock('alias:Stripe\Customer');
+        $staticCustomer->shouldReceive('create')
+                       ->withArgs([['description' => 'TestBillingModel(1)'], 'apiKey'])
+                       ->andThrow(new StripeError('create mock error'))
+                       ->once();
 
         $this->assertFalse($testModel->stripeCustomer());
     }
@@ -87,11 +101,15 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $customer->source = false;
         $customer->shouldReceive('save')->once();
 
-        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
-        $staticCustomer->shouldReceive('retrieve')->andReturn($customer)->once();
+        $staticCustomer = Mockery::mock('alias:Stripe\Customer');
+        $staticCustomer->shouldReceive('retrieve')
+                       ->andReturn($customer)
+                       ->once();
 
-        $staticStripe = Mockery::mock('alias:Stripe\\Stripe');
-        $staticStripe->shouldReceive('setApiKey')->withArgs(['apiKey'])->once();
+        $staticStripe = Mockery::mock('alias:Stripe\Stripe');
+        $staticStripe->shouldReceive('setApiKey')
+                     ->withArgs(['apiKey'])
+                     ->once();
 
         $this->assertTrue($testModel->setDefaultCard('tok_test'));
 
@@ -105,13 +123,19 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
 
         $customer = Mockery::mock('StripeCustomer');
         $customer->source = false;
-        $customer->shouldReceive('save')->andThrow(new Exception())->once();
+        $customer->shouldReceive('save')
+                 ->andThrow(new StripeError('set card mock error'))
+                 ->once();
 
-        $staticCustomer = Mockery::mock('alias:Stripe\\Customer');
-        $staticCustomer->shouldReceive('retrieve')->andReturn($customer)->once();
+        $staticCustomer = Mockery::mock('alias:Stripe\Customer');
+        $staticCustomer->shouldReceive('retrieve')
+                       ->andReturn($customer)
+                       ->once();
 
-        $staticStripe = Mockery::mock('alias:Stripe\\Stripe');
-        $staticStripe->shouldReceive('setApiKey')->withArgs(['apiKey'])->once();
+        $staticStripe = Mockery::mock('alias:Stripe\Stripe');
+        $staticStripe->shouldReceive('setApiKey')
+                     ->withArgs(['apiKey'])
+                     ->once();
 
         $this->assertFalse($testModel->setDefaultCard('tok_test'));
 
@@ -137,18 +161,20 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
         $model = Mockery::mock('TestBillingModel')->makePartial();
         Test::$app['config']->set('billing.emails.trial_will_end', true);
         Test::$app['config']->set('billing.emails.trial_ended', true);
-        $model::inject(Test::$app);
 
         $modelMock = Mockery::mock();
         $whereMock = Mockery::mock();
 
-        $member = Mockery::mock();
+        $member = Mockery::mock('TestBillingModel')->makePartial();
         $email = [
             'subject' => 'Your trial ends soon on Test Site',
             'tags' => ['billing', 'trial-will-end'], ];
-        $member->shouldReceive('sendEmail')->withArgs(['trial-will-end', $email])->once();
+        $member->shouldReceive('sendEmail')
+               ->withArgs(['trial-will-end', $email])
+               ->once();
         $member->shouldReceive('grantAllPermissions');
-        $member->shouldReceive('set')->withArgs(['last_trial_reminder', time()]);
+        $member->shouldReceive('set')
+               ->withArgs(['last_trial_reminder', time()]);
 
         $modelMock->shouldReceive('where')
             ->withArgs([[
@@ -162,24 +188,25 @@ class BillingModelTest extends \PHPUnit_Framework_TestCase
                   ->andReturn([$member])
                   ->once();
 
-        $member2 = Mockery::mock();
+        $member2 = Mockery::mock('TestBillingModel')->makePartial();
         $email2 = [
             'subject' => 'Your Test Site trial has ended',
             'tags' => ['billing', 'trial-ended'], ];
-        $member2->shouldReceive('sendEmail')->withArgs(['trial-ended', $email2])->once();
-        $member2->shouldReceive('grantAllPermissions');
-        $member2->shouldReceive('set')->withArgs(['last_trial_reminder', time()]);
+        $member2->shouldReceive('sendEmail')
+                ->withArgs(['trial-ended', $email2])
+                ->once();
+        $member2->shouldReceive('grantAllPermissions->save');
 
         $whereMock2 = Mockery::mock();
 
         $modelMock->shouldReceive('where')
-            ->withArgs([[
-                'trial_ends > 0',
-                'trial_ends < '.time(),
-                'renews_next' => 0,
-                'canceled' => 0,
-                '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ]])
-            ->andReturn($whereMock2);
+                  ->withArgs([[
+                    'trial_ends > 0',
+                    'trial_ends < '.time(),
+                    'renews_next' => 0,
+                    'canceled' => 0,
+                    '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ]])
+                  ->andReturn($whereMock2);
 
         $whereMock2->shouldReceive('all')
                    ->andReturn([$member2])

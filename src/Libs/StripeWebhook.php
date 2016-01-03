@@ -44,7 +44,7 @@ class StripeWebhook extends WebhookController
         if ($this->app['config']->get('billing.emails.failed_payment')) {
             $member->sendEmail(
                 'payment-problem', [
-                    'subject' => 'Declined charge for '.$this->app['config']->get('site.title'),
+                    'subject' => 'Declined charge for '.$this->app['config']->get('app.title'),
                     'timestamp' => $eventData->created,
                     'payment_time' => date('F j, Y g:i a T', $eventData->created),
                     'amount' => number_format($eventData->amount / 100, 2),
@@ -95,7 +95,7 @@ class StripeWebhook extends WebhookController
         if ($this->app['config']->get('billing.emails.payment_receipt')) {
             $member->sendEmail(
                 'payment-received', [
-                    'subject' => 'Payment receipt on '.$this->app['config']->get('site.title'),
+                    'subject' => 'Payment receipt on '.$this->app['config']->get('app.title'),
                     'timestamp' => $eventData->created,
                     'payment_time' => date('F j, Y g:i a T', $eventData->created),
                     'amount' => number_format($eventData->amount / 100, 2),
@@ -168,7 +168,7 @@ class StripeWebhook extends WebhookController
         if ($this->app['config']->get('billing.emails.subscription_canceled')) {
             $member->sendEmail(
                 'subscription-canceled', [
-                    'subject' => 'Your subscription to '.$this->app['config']->get('site.title').' has been canceled',
+                    'subject' => 'Your subscription to '.$this->app['config']->get('app.title').' has been canceled',
                     'tags' => ['billing', 'subscription-canceled'], ]);
         }
 

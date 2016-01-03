@@ -3,14 +3,22 @@
 /* This configuration is used to run the tests */
 
 return  [
-  'site' => [
+  'app' => [
     'title' => 'Test Site',
     'salt' => 'replacewithrandomstring',
+  ],
+  'services' => [
+    'db' => 'Infuse\Services\Database',
+    'model_driver' => 'Infuse\Services\ModelDriver',
+    'pdo' => 'Infuse\Services\Pdo',
   ],
   'modules' => [
     'middleware' => [
       'auth',
     ],
+  ],
+  'models' => [
+    'driver' => 'Pulsar\Driver\DatabaseDriver',
   ],
   'database' => [
     'type' => 'mysql',

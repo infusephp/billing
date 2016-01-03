@@ -2,6 +2,7 @@
 
 use App\Billing\Libs\StripeWebhook;
 use App\Billing\Models\BillingHistory;
+use Infuse\Test;
 
 class StripeWebhookTest extends PHPUnit_Framework_TestCase
 {
@@ -16,16 +17,6 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         self::$webhook = new StripeWebhook();
         self::$webhook->injectApp(Test::$app);
-    }
-
-    public function setUp()
-    {
-        Test::$app['user']->enableSU();
-    }
-
-    public function tearDown()
-    {
-        Test::$app['user']->disableSU();
     }
 
     public function testHandleInvalidEvent()
