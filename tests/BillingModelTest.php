@@ -5,11 +5,6 @@ use Stripe\Error\Api as StripeError;
 
 class BillingModelTest extends PHPUnit_Framework_TestCase
 {
-    public static function setUpBeforeClass()
-    {
-        require_once 'TestBillingModel.php';
-    }
-
     protected function tearDown()
     {
         TestBillingModel::setWhereMock(null);
