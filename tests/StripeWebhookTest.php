@@ -153,7 +153,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         $this->assertTrue(self::$webhook->handleChargeFailed($event, $member));
 
-        $history = BillingHistory::where(['stripe_transaction' => 'charge_failed'])
+        $history = BillingHistory::where('stripe_transaction', 'charge_failed')
             ->first();
         $this->assertInstanceOf('App\Billing\Models\BillingHistory', $history);
 
@@ -203,7 +203,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         $this->assertTrue(self::$webhook->handleChargeSucceeded($event, $member));
 
-        $history = BillingHistory::where(['stripe_transaction' => 'charge_succeeded'])
+        $history = BillingHistory::where('stripe_transaction', 'charge_succeeded')
             ->first();
         $this->assertInstanceOf('App\Billing\Models\BillingHistory', $history);
 

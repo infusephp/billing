@@ -3,8 +3,8 @@
 namespace App\Billing\Models;
 
 use App\Billing\Libs\BillingSubscription;
-use Pulsar\Model;
 use Pulsar\ACLModel;
+use Pulsar\Model;
 use Stripe\Customer;
 use Stripe\Error\Base as StripeError;
 use Stripe\Stripe;
@@ -226,11 +226,10 @@ abstract class BillableModel extends ACLModel
             $end = time() + self::$trialWillEndReminderDays * 86400;
             $start = $end - 86400;
 
-            $members = static::where([
-                    'trial_ends >= '.$start,
-                    'trial_ends <= '.$end,
-                    'canceled' => 0,
-                    'last_trial_reminder IS NULL', ])
+            $members = static::where('canceled', false)
+                ->where('trial_ends', $start, '>=')
+                ->where('trial_ends', $end, '<=')
+                ->where('last_trial_reminder IS NULL')
                 ->all();
 
             $n = 0;
@@ -254,12 +253,11 @@ abstract class BillableModel extends ACLModel
         /* Trial Ended Reminders */
 
         if ($config->get('billing.emails.trial_ended')) {
-            $members = static::where([
-                    'trial_ends > 0',
-                    'trial_ends < '.time(),
-                    'renews_next' => 0,
-                    'canceled' => 0,
-                    '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ])
+            $members = static::where('canceled', false)
+                ->where('trial_ends', 0, '>')
+                ->where('trial_ends', time(), '<')
+                ->where('renews_next', 0)
+                ->where('(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)')
                 ->all();
 
             $n = 0;
