@@ -2,50 +2,34 @@
 
 use App\Billing\Libs\BillingSubscription;
 use Infuse\Test;
+use Stripe\Error\Api as StripeError;
 
 class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 {
-    public function testProperties()
-    {
-        $props = [
-            'plan',
-            'stripe_customer',
-            'renews_next',
-            'trial_ends',
-            'past_due',
-            'canceled',
-            'canceled_at',
-            'not_charged', ];
-
-        foreach ($props as $p) {
-            $this->assertTrue(TestBillingModel::hasProperty($p));
-        }
-    }
-
     public function testPlan()
     {
-        $testModel = new TestBillingModel();
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $member = new TestBillingModel();
+        $sub = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertEquals('test', $sub->plan());
     }
 
     public function testStatusNotSubscribed()
     {
-        $testModel = new TestBillingModel();
-        $sub = new BillingSubscription($testModel, false, Test::$app);
+        $member = new TestBillingModel();
+        $sub = new BillingSubscription($member, false, Test::$app);
 
         $this->assertEquals('not_subscribed', $sub->status());
 
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $sub = new BillingSubscription($member, 'test', Test::$app);
         $this->assertEquals('not_subscribed', $sub->status());
     }
 
     public function testCanceled()
     {
-        $testModel = new TestBillingModel();
-        $testModel->canceled = true;
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $member = new TestBillingModel();
+        $member->canceled = true;
+        $sub = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertEquals('canceled', $sub->status());
         $this->assertTrue($sub->canceled());
@@ -53,10 +37,10 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
     public function testStatusActive()
     {
-        $testModel = new TestBillingModel();
-        $testModel->plan = 'test';
-        $testModel->renews_next = time() + 1000;
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $member = new TestBillingModel();
+        $member->plan = 'test';
+        $member->renews_next = time() + 1000;
+        $sub = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertEquals('active', $sub->status());
         $this->assertTrue($sub->active());
@@ -64,10 +48,10 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
     public function testStatusActiveNotCharged()
     {
-        $testModel = new TestBillingModel();
-        $testModel->plan = 'test';
-        $testModel->not_charged = true;
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $member = new TestBillingModel();
+        $member->plan = 'test';
+        $member->not_charged = true;
+        $sub = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertEquals('active', $sub->status());
         $this->assertTrue($sub->active());
@@ -75,11 +59,11 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
     public function testStatusActiveNotRenewedYet()
     {
-        $testModel = new TestBillingModel();
-        $testModel->plan = 'test';
-        $testModel->renews_next = time() - 1000;
-        $testModel->past_due = false;
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $member = new TestBillingModel();
+        $member->plan = 'test';
+        $member->renews_next = time() - 1000;
+        $member->past_due = false;
+        $sub = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertEquals('active', $sub->status());
         $this->assertTrue($sub->active());
@@ -87,11 +71,11 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
     public function testStatusTrialing()
     {
-        $testModel = new TestBillingModel();
-        $testModel->plan = 'test';
-        $testModel->renews_next = 0;
-        $testModel->trial_ends = time() + 900;
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $member = new TestBillingModel();
+        $member->plan = 'test';
+        $member->renews_next = 0;
+        $member->trial_ends = time() + 900;
+        $sub = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertEquals('trialing', $sub->status());
         $this->assertTrue($sub->trialing());
@@ -99,10 +83,10 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
     public function testPastDue()
     {
-        $testModel = new TestBillingModel();
-        $testModel->plan = 'test';
-        $testModel->past_due = true;
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $member = new TestBillingModel();
+        $member->plan = 'test';
+        $member->past_due = true;
+        $sub = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertEquals('past_due', $sub->status());
         $this->assertTrue($sub->active());
@@ -110,22 +94,22 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
     public function testUnpaid()
     {
-        $testModel = new TestBillingModel();
-        $testModel->plan = 'test';
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $member = new TestBillingModel();
+        $member->plan = 'test';
+        $sub = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertEquals('unpaid', $sub->status());
     }
 
     public function testCannotCreate()
     {
-        $testModel = new TestBillingModel();
-        $testModel->plan = 'test';
+        $member = new TestBillingModel();
+        $member->plan = 'test';
 
-        $sub = new BillingSubscription($testModel, 'test', Test::$app);
+        $sub = new BillingSubscription($member, 'test', Test::$app);
         $this->assertFalse($sub->create());
 
-        $sub = new BillingSubscription($testModel, '', Test::$app);
+        $sub = new BillingSubscription($member, '', Test::$app);
         $this->assertFalse($sub->create());
     }
 
@@ -144,28 +128,22 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
                  ->andReturn($resultSub)
                  ->once();
 
-        $testModel = Mockery::mock('BillingModel', 'App\Billing\Models\BillableModel');
-        $testModel->shouldReceive('get');
-        $testModel->shouldReceive('stripeCustomer')
-                  ->andReturn($customer)
-                  ->once();
-        $testModel->shouldReceive('grantAllPermissions')
-                  ->andReturn($testModel);
-        $testModel->shouldReceive('set')
-                  ->withArgs([[
-                        'plan' => 'test',
-                        'past_due' => false,
-                        'renews_next' => 100,
-                        'canceled' => false,
-                        'canceled_at' => null,
-                        'trial_ends' => 0,
-                    ]])
-                  ->once();
-        $testModel->shouldReceive('enforcePermissions');
+        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member->shouldReceive('stripeCustomer')
+                ->andReturn($customer)
+                ->once();
+        $member->shouldReceive('save')->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertTrue($subscription->create(false, false, ['coupon' => 'favorite-customer']));
+
+        $this->assertEquals('test', $member->plan);
+        $this->assertFalse($member->past_due);
+        $this->assertEquals(100, $member->renews_next);
+        $this->assertFalse($member->canceled);
+        $this->assertNull($member->canceled_at);
+        $this->assertEquals(0, $member->trial_ends);
     }
 
     public function testCreateWithToken()
@@ -183,27 +161,21 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
                  ->andReturn($resultSub)
                  ->once();
 
-        $testModel = Mockery::mock('BillingModel', 'App\Billing\Models\BillableModel');
-        $testModel->shouldReceive('get');
-        $testModel->shouldReceive('stripeCustomer')
-                  ->andReturn($customer)
-                  ->once();
-        $testModel->shouldReceive('grantAllPermissions')
-                  ->andReturn($testModel);
-        $testModel->shouldReceive('set')
-                  ->withArgs([[
-                        'plan' => 'test',
-                        'past_due' => false,
-                        'renews_next' => 100,
-                        'canceled' => false,
-                        'canceled_at' => null,
-                    ]])
-                  ->once();
-        $testModel->shouldReceive('enforcePermissions');
+        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member->shouldReceive('stripeCustomer')
+                ->andReturn($customer)
+                ->once();
+        $member->shouldReceive('save')->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertTrue($subscription->create('tok_test'));
+
+        $this->assertEquals('test', $member->plan);
+        $this->assertFalse($member->past_due);
+        $this->assertEquals(100, $member->renews_next);
+        $this->assertFalse($member->canceled);
+        $this->assertNull($member->canceled_at);
     }
 
     public function testCreateNoTrial()
@@ -221,54 +193,51 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
                  ->andReturn($resultSub)
                  ->once();
 
-        $testModel = Mockery::mock('BillingModel', 'App\Billing\Models\BillableModel');
-        $testModel->shouldReceive('get');
-        $testModel->shouldReceive('stripeCustomer')
-                  ->andReturn($customer)
-                  ->once();
-        $testModel->shouldReceive('grantAllPermissions')
-                  ->andReturn($testModel);
-        $testModel->shouldReceive('set')
-                  ->withArgs([[
-                        'plan' => 'test',
-                        'past_due' => false,
-                        'renews_next' => 100,
-                        'canceled' => false,
-                        'canceled_at' => null,
-                        'trial_ends' => 0,
-                    ]])
-                  ->once();
-        $testModel->shouldReceive('enforcePermissions');
+        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member->shouldReceive('stripeCustomer')
+                ->andReturn($customer)
+                ->once();
+        $member->shouldReceive('save')->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertTrue($subscription->create(false, true));
+
+        $this->assertEquals('test', $member->plan);
+        $this->assertFalse($member->past_due);
+        $this->assertEquals(100, $member->renews_next);
+        $this->assertFalse($member->canceled);
+        $this->assertNull($member->canceled_at);
+        $this->assertEquals(0, $member->trial_ends);
     }
 
     public function testCreateFail()
     {
+        $e = new StripeError('error');
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([['plan' => 'test', 'source' => 'tok_test']])
-            ->andThrow(new Exception())->once();
+        $customer->shouldReceive('updateSubscription')
+            ->withArgs([['plan' => 'test', 'source' => 'tok_test']])
+            ->andThrow($e);
 
-        $testModel = Mockery::mock('BillingModel', 'App\Billing\Models\BillableModel');
-        $testModel->shouldReceive('get');
-        $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
+        $member = Mockery::mock('TestBillingModel[stripeCustomer]');
+        $member->shouldReceive('stripeCustomer')
+                ->andReturn($customer)
+                ->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertFalse($subscription->create('tok_test'));
     }
 
     public function testCannotChange()
     {
-        $testModel = new TestBillingModel();
-        $this->assertFalse($testModel->subscription()->change('test'));
-        $this->assertFalse($testModel->subscription()->change(''));
+        $member = new TestBillingModel();
+        $this->assertFalse($member->subscription()->change('test'));
+        $this->assertFalse($member->subscription()->change(''));
 
-        $testModel->not_charged = true;
-        $testModel->plan = 'test2';
-        $this->assertFalse($testModel->subscription()->change('test'));
+        $member->not_charged = true;
+        $member->plan = 'test2';
+        $this->assertFalse($member->subscription()->change('test'));
     }
 
     public function testChange()
@@ -291,73 +260,54 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
             ->andReturn($resultSub)
             ->once();
 
-        $testModel = Mockery::mock('BillingModel', 'App\Billing\Models\BillableModel');
-        $testModel->shouldReceive('get')
-                  ->withArgs([['canceled']])
-                  ->andReturn(false);
-        $testModel->shouldReceive('get')
-                  ->withArgs([['not_charged']])
-                  ->andReturn(false);
-        $testModel->shouldReceive('get')
-                  ->withArgs([['trial_ends']])
-                  ->andReturn($trialEnds);
-        $testModel->shouldReceive('get')
-                  ->withArgs([['renews_next']])
-                  ->andReturn(0);
-        $testModel->shouldReceive('get')
-                  ->withArgs([['plan']])
-                  ->andReturn('test');
-        $testModel->shouldReceive('stripeCustomer')
-                  ->andReturn($customer)
-                  ->once();
-        $testModel->shouldReceive('grantAllPermissions')
-                  ->andReturn($testModel);
-        $testModel->shouldReceive('set')
-                  ->withArgs([[
-                    'plan' => 'blah',
-                    'past_due' => false,
-                    'renews_next' => 100,
-                    'canceled' => false,
-                    'canceled_at' => null,
-                    'trial_ends' => 0,
-                  ]])
-                  ->once();
-        $testModel->shouldReceive('enforcePermissions');
+        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member->shouldReceive('stripeCustomer')
+                ->andReturn($customer)
+                ->once();
+        $member->shouldReceive('save')->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
+        $member->canceled = false;
+        $member->not_charged = false;
+        $member->trial_ends = $trialEnds;
+        $member->renews_next = 0;
+        $member->plan = 'test';
+
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertTrue($subscription->change('blah', false, ['prorate' => false]));
         $this->assertEquals('blah', $subscription->plan());
+
+        $this->assertEquals('blah', $member->plan);
+        $this->assertFalse($member->past_due);
+        $this->assertEquals(100, $member->renews_next);
+        $this->assertFalse($member->canceled);
+        $this->assertNull($member->canceled_at);
+        $this->assertEquals(0, $member->trial_ends);
     }
 
     public function testChangeFail()
     {
+        $e = new StripeError('error');
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('updateSubscription')->withArgs([[
-            'plan' => 'blah',
-            'prorate' => true,
-            'trial_end' => 'now', ]])
-            ->andThrow(new Exception())->once();
+        $customer->shouldReceive('updateSubscription')
+                  ->withArgs([[
+                    'plan' => 'blah',
+                    'prorate' => true,
+                    'trial_end' => 'now', ]])
+                  ->andThrow($e);
 
-        $testModel = Mockery::mock('BillingModel', 'App\Billing\Models\BillableModel');
-        $testModel->shouldReceive('get')
-            ->withArgs([['canceled']])
-            ->andReturn(false);
-        $testModel->shouldReceive('get')
-            ->withArgs([['not_charged']])
-            ->andReturn(false);
-        $testModel->shouldReceive('get')
-            ->withArgs([['renews_next']])
-            ->andReturn(time() + 1000);
-        $testModel->shouldReceive('get')
-            ->withArgs([['trial_ends']])
-            ->andReturn(null);
-        $testModel->shouldReceive('get')
-            ->withArgs([['plan']])
-            ->andReturn('test');
-        $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
+        $member = Mockery::mock('TestBillingModel[stripeCustomer]');
+        $member->shouldReceive('stripeCustomer')
+                ->andReturn($customer)
+                ->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
+        $member->canceled = false;
+        $member->not_charged = false;
+        $member->renews_next = time() + 1000;
+        $member->trial_ends = null;
+        $member->plan = 'test';
+
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertFalse($subscription->change('blah', true));
     }
@@ -367,30 +317,29 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
         $resultSub = new stdClass();
         $resultSub->status = 'canceled';
 
-        $testModel = Mockery::mock('BillingModel', 'App\Billing\Models\BillableModel');
-        $testModel->shouldReceive('get')
-            ->withArgs([['canceled']])
-            ->andReturn(false);
-        $testModel->shouldReceive('get')
-            ->withArgs([['trial_ends']])
-            ->andReturn(0);
-        $testModel->shouldReceive('get')
-            ->withArgs([['not_charged']])
-            ->andReturn(true);
-        $testModel->shouldReceive('get')
-            ->withArgs([['plan']])
-            ->andReturn('test');
-        $testModel->shouldReceive('get')
-            ->withArgs([['stripe_customer']])
-            ->andReturn(null);
-        $testModel->shouldReceive('grantAllPermissions');
-        $testModel->shouldReceive('enforcePermissions');
-        $testModel->shouldReceive('set')->withArgs(['canceled', true])->once();
-        $testModel->shouldReceive('sendEmail')->withArgs(['subscription-canceled', ['subject' => 'Your subscription to Test Site has been canceled', 'tags' => ['billing', 'subscription-canceled']]])->once();
+        $member = Mockery::mock('TestBillingModel[save]');
+        $member->shouldReceive('save')->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
+        $member->canceled = false;
+        $member->trial_ends = 0;
+        $member->not_charged = true;
+        $member->plan = 'test';
+        $member->stripe_customer = null;
+
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertTrue($subscription->cancel());
+
+        $this->assertTrue($member->canceled);
+
+        $expected = [
+            'subscription-canceled',
+            [
+                'subject' => 'Your subscription to Test Site has been canceled',
+                'tags' => ['billing', 'subscription-canceled'],
+            ],
+        ];
+        $this->assertEquals($expected, $member->lastEmail);
     }
 
     public function testCancel()
@@ -399,57 +348,48 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
         $resultSub->status = 'canceled';
 
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('cancelSubscription')->andReturn($resultSub)->once();
+        $customer->shouldReceive('cancelSubscription')
+                 ->andReturn($resultSub)
+                 ->once();
 
-        $testModel = Mockery::mock('BillingModel', 'App\Billing\Models\BillableModel');
-        $testModel->shouldReceive('get')
-            ->withArgs([['canceled']])
-            ->andReturn(false);
-        $testModel->shouldReceive('get')
-            ->withArgs([['trial_ends']])
-            ->andReturn(0);
-        $testModel->shouldReceive('get')
-            ->withArgs([['not_charged']])
-            ->andReturn(true);
-        $testModel->shouldReceive('get')
-            ->withArgs([['plan']])
-            ->andReturn('test');
-        $testModel->shouldReceive('get')
-            ->withArgs([['stripe_customer']])
-            ->andReturn('cus_test');
-        $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
-        $testModel->shouldReceive('grantAllPermissions');
-        $testModel->shouldReceive('enforcePermissions');
-        $testModel->shouldReceive('set')->withArgs(['canceled', true])->once();
+        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member->shouldReceive('stripeCustomer')
+                ->andReturn($customer)
+                ->once();
+        $member->shouldReceive('save')->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
+        $member->canceled = false;
+        $member->trial_ends = 0;
+        $member->not_charged = true;
+        $member->plan = 'test';
+        $member->stripe_customer = 'cust_test';
+
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertTrue($subscription->cancel());
+
+        $this->assertTrue($member->canceled);
     }
 
     public function testCancelFail()
     {
+        $e = new StripeError('error');
         $customer = Mockery::mock('StripeCustomer');
-        $customer->shouldReceive('cancelSubscription')->andThrow(new Exception())->once();
+        $customer->shouldReceive('cancelSubscription')
+                 ->andThrow($e);
 
-        $testModel = Mockery::mock('BillingModel', 'App\Billing\Models\BillableModel');
-        $testModel->shouldReceive('get')
-            ->withArgs([['canceled']])
-            ->andReturn(false);
-        $testModel->shouldReceive('get')
-            ->withArgs([['trial_ends']])->andReturn(0);
-        $testModel->shouldReceive('get')
-            ->withArgs([['not_charged']])
-            ->andReturn(true);
-        $testModel->shouldReceive('get')
-            ->withArgs([['plan']])
-            ->andReturn('test');
-        $testModel->shouldReceive('get')
-            ->withArgs([['stripe_customer']])
-            ->andReturn('cus_test');
-        $testModel->shouldReceive('stripeCustomer')->andReturn($customer)->once();
+        $member = Mockery::mock('TestBillingModel[stripeCustomer]');
+        $member->shouldReceive('stripeCustomer')
+                ->andReturn($customer)
+                ->once();
 
-        $subscription = new BillingSubscription($testModel, 'test', Test::$app);
+        $member->canceled = false;
+        $member->trial_ends = 0;
+        $member->not_charged = true;
+        $member->plan = 'test';
+        $member->stripe_customer = 'cust_test';
+
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
 
         $this->assertFalse($subscription->cancel());
     }

@@ -4,6 +4,7 @@ namespace App\Billing\Libs;
 
 use Infuse\Application;
 use App\Billing\Models\BillableModel;
+use Stripe\Error\Base as StripeError;
 
 class BillingSubscription
 {
@@ -67,24 +68,22 @@ class BillingSubscription
 
             // update the user's billing state
             if (in_array($subscription->status, ['active', 'trialing'])) {
-                $params = [
-                    'plan' => $this->plan,
-                    'past_due' => false,
-                    'renews_next' => $subscription->current_period_end,
-                    'canceled' => false,
-                    'canceled_at' => null,
-                ];
+                $this->model->plan = $this->plan;
+                $this->model->past_due = false;
+                $this->model->renews_next = $subscription->current_period_end;
+                $this->model->canceled = false;
+                $this->model->canceled_at = null;
 
                 if ($subscription->status == 'active') {
-                    $params['trial_ends'] = 0;
+                    $this->model->trial_ends = 0;
                 }
 
-                $this->model->grantAllPermissions()->set($params);
+                $this->model->grantAllPermissions()->save();
                 $this->model->enforcePermissions();
 
                 return true;
             }
-        } catch (\Exception $e) {
+        } catch (StripeError $e) {
             $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
@@ -134,26 +133,24 @@ class BillingSubscription
 
             // update the user's billing state
             if (in_array($subscription->status, ['active', 'trialing']) && $subscription->plan->id == $plan) {
-                $params = [
-                    'plan' => $plan,
-                    'past_due' => false,
-                    'renews_next' => $subscription->current_period_end,
-                    'canceled' => false,
-                    'canceled_at' => null,
-                ];
+                $this->model->plan = $plan;
+                $this->model->past_due = false;
+                $this->model->renews_next = $subscription->current_period_end;
+                $this->model->canceled = false;
+                $this->model->canceled_at = null;
 
                 if ($subscription->status == 'active') {
-                    $params['trial_ends'] = 0;
+                    $this->model->trial_ends = 0;
                 }
 
-                $this->model->grantAllPermissions()->set($params);
+                $this->model->grantAllPermissions()->save();
                 $this->model->enforcePermissions();
 
                 $this->plan = $plan;
 
                 return true;
             }
-        } catch (\Exception $e) {
+        } catch (StripeError $e) {
             $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
@@ -206,7 +203,7 @@ class BillingSubscription
 
                 return true;
             }
-        } catch (\Exception $e) {
+        } catch (StripeError $e) {
             $this->app['logger']->debug($e);
             $this->app['errors']->push([
                 'error' => 'stripe_error',

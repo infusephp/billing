@@ -5,7 +5,10 @@ use Pulsar\Model;
 
 class TestBillingModel extends BillableModel
 {
-    public static $whereMock;
+    public $lastEmail;
+    public static $endingSoon;
+    public static $ended;
+
     protected static $hidden = [];
 
     protected function hasPermission($permission, Model $requester)
@@ -16,17 +19,22 @@ class TestBillingModel extends BillableModel
     public function stripeCustomerData()
     {
         return [
-            'description' => 'TestBillingModel('.$this->id.')',
+            'description' => 'TestBillingModel('.$this->id().')',
         ];
     }
 
-    public static function setWhereMock($mock)
+    public function sendEmail()
     {
-        self::$whereMock = $mock;
+        $this->lastEmail = func_get_args();
     }
 
-    public static function where($params)
+    public static function getTrialsEndingSoon()
     {
-        return self::$whereMock ? self::$whereMock->where($params) : parent::where($params);
+        return self::$endingSoon ? self::$endingSoon : parent::getTrialsEndingSoon();
+    }
+
+    public static function getEndedTrials()
+    {
+        return self::$ended ? self::$ended : parent::getEndedTrials();
     }
 }

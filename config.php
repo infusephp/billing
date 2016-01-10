@@ -12,11 +12,6 @@ return  [
     'model_driver' => 'Infuse\Services\ModelDriver',
     'pdo' => 'Infuse\Services\Pdo',
   ],
-  'modules' => [
-    'middleware' => [
-      'auth',
-    ],
-  ],
   'models' => [
     'driver' => 'Pulsar\Driver\DatabaseDriver',
   ],
@@ -31,6 +26,7 @@ return  [
     'secret' => 'apiKey',
   ],
   'billing' => [
+    'model' => 'TestBillingModel',
     'emails' => [
       'failed_payment' => true,
       'payment_receipt' => true,
@@ -38,6 +34,5 @@ return  [
       'trial_ended' => true,
       'trial_will_end' => true,
     ],
-    'model' => 'TestBillingModel',
   ],
 ];

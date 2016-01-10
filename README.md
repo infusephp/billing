@@ -38,6 +38,7 @@ Subscription membership module for Infuse Framework powered by Stripe
 		// ...
 		'commands' => [
 			// ...
+			'App\Billing\Console\ExtendTrialCommand',
 			'App\Billing\Console\SyncStripeSubscriptionsCommand',
 			'App\Billing\Console\SyncStripeProfilesCommand'
 		]

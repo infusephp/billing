@@ -211,73 +211,96 @@ abstract class BillableModel extends ACLModel
     }
 
     /**
+     * Gets members with trials that are ending soon but not notified yet.
+     *
+     * @return Pulsar\Iterator
+     */
+    public static function getTrialsEndingSoon()
+    {
+        // reminder window is valid for up to 1 day
+        $end = time() + self::$trialWillEndReminderDays * 86400;
+        $start = $end - 86400;
+
+        return static::where('canceled', false)
+            ->where('trial_ends', $start, '>=')
+            ->where('trial_ends', $end, '<=')
+            ->where('last_trial_reminder IS NULL')
+            ->all();
+    }
+
+    /**
+     * Gets members with trials that have ended but not notified yet.
+     *
+     * @return Pulsar\Iterator
+     */
+    public static function getEndedTrials()
+    {
+        return static::where('canceled', false)
+            ->where('trial_ends', 0, '>')
+            ->where('trial_ends', time(), '<')
+            ->where('renews_next', 0)
+            ->where('(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)')
+            ->all();
+    }
+
+    /**
      * Sends out trial reminders - trial_will_end and trial_ended.
      *
-     * @return bool
+     * @return array [sent ending soon notices, sent ended notices]
      */
-    public static function sendTrialReminders($echoOutput = true)
+    public static function sendTrialReminders()
+    {
+        return [
+            self::sendTrialWillEndReminders(),
+            self::sendTrialEndedReminders(),
+        ];
+    }
+
+    private static function sendTrialWillEndReminders()
     {
         $config = self::$injectedApp['config'];
-
-        /* Trial Will End Reminders */
-
-        if ($config->get('billing.emails.trial_will_end')) {
-            // reminder window is valid for up to 1 day
-            $end = time() + self::$trialWillEndReminderDays * 86400;
-            $start = $end - 86400;
-
-            $members = static::where('canceled', false)
-                ->where('trial_ends', $start, '>=')
-                ->where('trial_ends', $end, '<=')
-                ->where('last_trial_reminder IS NULL')
-                ->all();
-
-            $n = 0;
-            foreach ($members as $member) {
-                $member->sendEmail(
-                    'trial-will-end', [
-                        'subject' => 'Your trial ends soon on '.$config->get('app.title'),
-                        'tags' => ['billing', 'trial-will-end'], ]);
-
-                $member->last_trial_reminder = time();
-                $member->grantAllPermissions()->save();
-
-                ++$n;
-            }
-
-            if ($echoOutput) {
-                echo "--- Sent $n trial will end notices(s)\n";
-            }
+        if (!$config->get('billing.emails.trial_will_end')) {
+            return 0;
         }
 
-        /* Trial Ended Reminders */
+        $members = static::getTrialsEndingSoon();
+        $n = 0;
+        foreach ($members as $member) {
+            $member->sendEmail(
+                'trial-will-end', [
+                    'subject' => 'Your trial ends soon on '.$config->get('app.title'),
+                    'tags' => ['billing', 'trial-will-end'], ]);
 
-        if ($config->get('billing.emails.trial_ended')) {
-            $members = static::where('canceled', false)
-                ->where('trial_ends', 0, '>')
-                ->where('trial_ends', time(), '<')
-                ->where('renews_next', 0)
-                ->where('(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)')
-                ->all();
+            $member->last_trial_reminder = time();
+            $member->grantAllPermissions()->save();
 
-            $n = 0;
-            foreach ($members as $member) {
-                $member->sendEmail(
-                    'trial-ended', [
-                        'subject' => 'Your '.$config->get('app.title').' trial has ended',
-                        'tags' => ['billing', 'trial-ended'], ]);
-
-                $member->last_trial_reminder = time();
-                $member->grantAllPermissions()->save();
-
-                ++$n;
-            }
-
-            if ($echoOutput) {
-                echo "--- Sent $n trial ended notices(s)\n";
-            }
+            ++$n;
         }
 
-        return true;
+        return $n;
+    }
+
+    private static function sendTrialEndedReminders()
+    {
+        $config = self::$injectedApp['config'];
+        if (!$config->get('billing.emails.trial_ended')) {
+            return 0;
+        }
+
+        $members = static::getEndedTrials();
+        $n = 0;
+        foreach ($members as $member) {
+            $member->sendEmail(
+                'trial-ended', [
+                    'subject' => 'Your '.$config->get('app.title').' trial has ended',
+                    'tags' => ['billing', 'trial-ended'], ]);
+
+            $member->last_trial_reminder = time();
+            $member->grantAllPermissions()->save();
+
+            ++$n;
+        }
+
+        return $n;
     }
 }

@@ -18,6 +18,9 @@ class Controller extends StripeWebhook
     {
         $modelClass = $this->app['config']->get('billing.model');
 
-        return $modelClass::sendTrialReminders();
+        list($m, $n) = $modelClass::sendTrialReminders();
+
+        echo "-- Sent $m trial ending soon notifications\n";
+        echo "-- Sent $n trial ended notifications\n";
     }
 }

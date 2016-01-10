@@ -3,6 +3,7 @@
 use App\Billing\Libs\StripeWebhook;
 use App\Billing\Models\BillingHistory;
 use Infuse\Test;
+use Pulsar\ACLModel;
 
 class StripeWebhookTest extends PHPUnit_Framework_TestCase
 {
@@ -16,110 +17,12 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         self::$webhook = new StripeWebhook();
         self::$webhook->injectApp(Test::$app);
+
+        $model = Mockery::mock('Pulsar\Model');
+        ACLModel::setRequester($model);
     }
 
-    public function testHandleInvalidEvent()
-    {
-        $this->assertEquals(StripeWebhook::ERROR_INVALID_EVENT, self::$webhook->handle([]));
-    }
-
-    public function testHandleLivemodeMismatch()
-    {
-        $event = [
-            'id' => 'evt_test',
-            'livemode' => true, ];
-        $this->assertEquals(StripeWebhook::ERROR_LIVEMODE_MISMATCH, self::$webhook->handle($event));
-    }
-
-    public function testHandleConnectEvent()
-    {
-        $event = [
-            'id' => 'evt_test',
-            'livemode' => false,
-            'user_id' => 'usr_1234', ];
-        $this->assertEquals(StripeWebhook::ERROR_STRIPE_CONNECT_EVENT, self::$webhook->handle($event));
-    }
-
-    public function testHandleCustomerNotFound()
-    {
-        $validatedEvent = new stdClass();
-        $validatedEvent->type = 'customer.subscription.updated';
-        $validatedEvent->data = new stdClass();
-        $validatedEvent->data->object = new stdClass();
-        $validatedEvent->data->object->customer = 'cus_test';
-        $staticEvent = Mockery::mock('alias:Stripe\\Event');
-        $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test2', 'apiKey'])->andReturn($validatedEvent);
-
-        $event = [
-            'id' => 'evt_test2',
-            'livemode' => false,
-            'type' => 'customer.subscription.updated', ];
-        $this->assertEquals(StripeWebhook::ERROR_CUSTOMER_NOT_FOUND, self::$webhook->handle($event));
-    }
-
-    public function testHandleNotSupported()
-    {
-        $staticEvent = Mockery::mock('alias:Stripe\\Event');
-        $validatedEvent = new stdClass();
-        $validatedEvent->type = 'event.not_found';
-        $validatedEvent->data = new stdClass();
-        $validatedEvent->data->object = new stdClass();
-        $validatedEvent->data->object->customer = 'cus_test';
-        $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test3', 'apiKey'])->andReturn($validatedEvent);
-
-        $model = Mockery::mock();
-
-        Test::$app['config']->set('billing.model', 'TestBillingModel2');
-        $staticModel = Mockery::mock('alias:TestBillingModel2');
-        $staticModel->shouldReceive('where->first')->andReturn($model);
-
-        $event = [
-            'id' => 'evt_test3',
-            'livemode' => false,
-            'type' => 'event.not_found', ];
-        $this->assertEquals(StripeWebhook::ERROR_EVENT_NOT_SUPPORTED, self::$webhook->handle($event));
-    }
-
-    public function testHandleException()
-    {
-        $e = new Exception();
-        $staticEvent = Mockery::mock('alias:Stripe\\Event');
-        $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test', 'apiKey'])->andThrow(new Exception());
-
-        $event = [
-            'id' => 'evt_test',
-            'livemode' => false,
-            'type' => 'customer.subscription.updated', ];
-        $this->assertEquals(StripeWebhook::ERROR_GENERIC, self::$webhook->handle($event));
-    }
-
-    public function testHandle()
-    {
-        $validatedEvent = new stdClass();
-        $validatedEvent->type = 'customer.subscription.deleted';
-        $validatedEvent->data = new stdClass();
-        $validatedEvent->data->object = new stdClass();
-        $validatedEvent->data->object->customer = 'cus_test';
-        $staticEvent = Mockery::mock('alias:Stripe\\Event');
-        $staticEvent->shouldReceive('retrieve')->withArgs(['evt_test', 'apiKey'])->andReturn($validatedEvent);
-
-        $model = Mockery::mock();
-        $model->shouldReceive('set');
-        $model->shouldReceive('sendEmail');
-
-        Test::$app['config']->set('billing.model', 'TestBillingModel2');
-        $staticModel = Mockery::mock('alias:TestBillingModel2');
-        $staticModel->shouldReceive('where->first')->andReturn($model);
-
-        $event = [
-            'id' => 'evt_test',
-            'livemode' => false,
-            'type' => 'customer.subscription.updated', ];
-
-        $this->assertEquals(StripeWebhook::SUCCESS, self::$webhook->handle($event));
-    }
-
-    public function testChargeFailed()
+    public function testHandleChargeFailed()
     {
         $event = new stdClass();
         $event->id = 'charge_failed';
@@ -171,7 +74,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $history->toArray());
     }
 
-    public function testChargeSucceeded()
+    public function testHandleChargeSucceeded()
     {
         $event = new stdClass();
         $event->id = 'charge_succeeded';
@@ -221,99 +124,106 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $history->toArray());
     }
 
-    public function testSubscriptionCreated()
+    public function testHandleSubscriptionCreated()
     {
         $event = new stdClass();
         $event->status = 'trialing';
         $event->trial_end = 100;
         $event->current_period_end = 101;
         $event->plan = new stdClass();
-        $event->plan->id = 'invoiced-growth';
+        $event->plan->id = 'growth';
 
-        $member = Mockery::mock();
-        $member->shouldReceive('set')->withArgs([[
-            'past_due' => false,
-            'renews_next' => 101,
-            'canceled' => false,
-            'canceled_at' => null,
-            'plan' => 'invoiced-growth', ]]);
+        $member = Mockery::mock('TestBillingModel[save]');
+        $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionCreated($event, $member));
+
+        $this->assertFalse($member->past_due);
+        $this->assertEquals(101, $member->renews_next);
+        $this->assertFalse($member->canceled);
+        $this->assertNull($member->canceled_at);
+        $this->assertEquals('growth', $member->plan);
     }
 
-    public function testSubscriptionUnpaid()
+    public function testHandleSubscriptionUnpaid()
     {
         $event = new stdClass();
         $event->status = 'unpaid';
         $event->trial_end = 100;
         $event->plan = new stdClass();
-        $event->plan->id = 'invoiced-startup';
+        $event->plan->id = 'startup';
 
-        $member = Mockery::mock();
-        $member->shouldReceive('set')->withArgs([[
-            'past_due' => false,
-            'plan' => 'invoiced-startup', ]]);
+        $member = Mockery::mock('TestBillingModel[save]');
+        $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
+
+        $this->assertFalse($member->past_due);
+        $this->assertEquals('startup', $member->plan);
     }
 
-    public function testSubscriptionPastDue()
+    public function testHandleSubscriptionPastDue()
     {
         $event = new stdClass();
         $event->status = 'past_due';
         $event->trial_end = 100;
         $event->current_period_end = 101;
         $event->plan = new stdClass();
-        $event->plan->id = 'invoiced-startup';
+        $event->plan->id = 'startup';
 
-        $member = Mockery::mock();
-        $member->shouldReceive('set')->withArgs([[
-            'past_due' => true,
-            'renews_next' => 101,
-            'canceled' => false,
-            'canceled_at' => null,
-            'trial_ends' => 0,
-            'plan' => 'invoiced-startup', ]]);
+        $member = Mockery::mock('TestBillingModel[save]');
+        $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
+
+        $this->assertTrue($member->past_due);
+        $this->assertEquals(101, $member->renews_next);
+        $this->assertFalse($member->canceled);
+        $this->assertNull($member->canceled_at);
+        $this->assertEquals(0, $member->trial_ends);
+        $this->assertEquals('startup', $member->plan);
     }
 
-    public function testSubscriptionActive()
+    public function testHandleSubscriptionActive()
     {
         $event = new stdClass();
         $event->status = 'active';
         $event->trial_end = 100;
         $event->current_period_end = 1000;
         $event->plan = new stdClass();
-        $event->plan->id = 'invoiced-startup';
+        $event->plan->id = 'startup';
 
-        $member = Mockery::mock();
-        $member->shouldReceive('set')->withArgs([[
-            'past_due' => false,
-            'renews_next' => 1000,
-            'canceled' => false,
-            'canceled_at' => null,
-            'trial_ends' => 0,
-            'plan' => 'invoiced-startup', ]]);
+        $member = Mockery::mock('TestBillingModel[save]');
+        $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
+
+        $this->assertFalse($member->past_due);
+        $this->assertEquals(1000, $member->renews_next);
+        $this->assertFalse($member->canceled);
+        $this->assertNull($member->canceled_at);
+        $this->assertEquals(0, $member->trial_ends);
+        $this->assertEquals('startup', $member->plan);
     }
 
-    public function testSubscriptionCanceled()
+    public function testHandleSubscriptionCanceled()
     {
         $event = new stdClass();
 
-        $member = Mockery::mock();
-        $member->shouldReceive('set')
-               ->withArgs(['canceled', true]);
-
-        $email = [
-            'subject' => 'Your subscription to Test Site has been canceled',
-            'tags' => ['billing', 'subscription-canceled'], ];
-        $member->shouldReceive('sendEmail')
-               ->withArgs(['subscription-canceled', $email])
-               ->once();
+        $member = Mockery::mock('TestBillingModel[save]');
+        $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionDeleted($event, $member));
+
+        $this->assertTrue($member->canceled);
+
+        $expected = [
+            'subscription-canceled',
+            [
+                'subject' => 'Your subscription to Test Site has been canceled',
+                'tags' => ['billing', 'subscription-canceled'],
+            ],
+        ];
+        $this->assertEquals($expected, $member->lastEmail);
     }
 }

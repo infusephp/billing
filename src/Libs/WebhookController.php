@@ -5,6 +5,7 @@ namespace App\Billing\Libs;
 use ICanBoogie\Inflector;
 use Infuse\Application;
 use Infuse\HasApp;
+use Stripe\Error\Base as StripeError;
 use Stripe\Event;
 
 class WebhookController
@@ -91,7 +92,7 @@ class WebhookController
             if ($this->$method($eventData, $member)) {
                 return self::SUCCESS;
             }
-        } catch (\Exception $e) {
+        } catch (StripeError $e) {
             $this->app['logger']->error($e);
         }
 

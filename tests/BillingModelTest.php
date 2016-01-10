@@ -5,9 +5,34 @@ use Stripe\Error\Api as StripeError;
 
 class BillingModelTest extends PHPUnit_Framework_TestCase
 {
+    public static $modelDriver;
+
+    public static function setUpBeforeClass()
+    {
+        static::$modelDriver = TestBillingModel::getDriver();
+    }
+
     protected function tearDown()
     {
-        TestBillingModel::setWhereMock(null);
+        TestBillingModel::setDriver(static::$modelDriver);
+    }
+
+    public function testProperties()
+    {
+        $props = [
+            'plan',
+            'stripe_customer',
+            'renews_next',
+            'trial_ends',
+            'past_due',
+            'canceled',
+            'canceled_at',
+            'not_charged', ];
+
+        $model = new TestBillingModel(); // ensure initialize() called
+        foreach ($props as $k) {
+            $this->assertTrue(TestBillingModel::hasProperty($k), "Should have property $k");
+        }
     }
 
     public function testCreate()
@@ -41,17 +66,22 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
         $testModel = new TestBillingModel();
         $testModel->stripe_customer = 'cust_test';
 
+        $e = new StripeError('error');
         $staticCustomer = Mockery::mock('alias:Stripe\Customer');
         $staticCustomer->shouldReceive('retrieve')
                        ->withArgs(['cust_test', 'apiKey'])
-                       ->andThrow(new StripeError('retrieve mock error'))->once();
+                       ->andThrow($e)
+                       ->once();
 
         $this->assertFalse($testModel->stripeCustomer());
     }
 
     public function testStripeCustomerCreate()
     {
-        $testModel = new TestBillingModel(1);
+        $testModel = Mockery::mock('TestBillingModel[save]', [1]);
+        $testModel->shouldReceive('save')
+                  ->andReturn(true);
+        $testModel->stripe_customer = null;
 
         $customer = new stdClass();
         $customer->id = 'cust_test';
@@ -76,12 +106,15 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
         $testModel->stripe_customer = false;
 
         $staticStripe = Mockery::mock('alias:Stripe\Stripe');
-        $staticStripe->shouldReceive('setApiKey')->withArgs(['apiKey'])->once();
+        $staticStripe->shouldReceive('setApiKey')
+                     ->withArgs(['apiKey'])
+                     ->once();
 
+        $e = new StripeError('error');
         $staticCustomer = Mockery::mock('alias:Stripe\Customer');
         $staticCustomer->shouldReceive('create')
                        ->withArgs([['description' => 'TestBillingModel(1)'], 'apiKey'])
-                       ->andThrow(new StripeError('create mock error'))
+                       ->andThrow($e)
                        ->once();
 
         $this->assertFalse($testModel->stripeCustomer());
@@ -116,10 +149,11 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
         $testModel = new TestBillingModel(1);
         $testModel->stripe_customer = 'test';
 
+        $e = new StripeError('error');
         $customer = Mockery::mock('StripeCustomer');
         $customer->source = false;
         $customer->shouldReceive('save')
-                 ->andThrow(new StripeError('set card mock error'))
+                 ->andThrow($e)
                  ->once();
 
         $staticCustomer = Mockery::mock('alias:Stripe\Customer');
@@ -151,64 +185,74 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('blah', $subscription->plan());
     }
 
+    public function testGetTrialsEndingSoon()
+    {
+        $start = strtotime('+2 days');
+        $end = strtotime('+3 days');
+
+        $members = TestBillingModel::getTrialsEndingSoon();
+
+        $this->assertInstanceOf('Pulsar\Iterator', $members);
+
+        $expected = [
+            'canceled' => false,
+            ['trial_ends', $start, '>='],
+            ['trial_ends', $end, '<='],
+            'last_trial_reminder IS NULL',
+        ];
+        $this->assertEquals($expected, $members->getQuery()->getWhere());
+    }
+
+    public function testGetEndedTrials()
+    {
+        $t = time();
+        $members = TestBillingModel::getEndedTrials();
+
+        $this->assertInstanceOf('Pulsar\Iterator', $members);
+
+        $expected = [
+            'canceled' => false,
+            'renews_next' => 0,
+            ['trial_ends', 0, '>'],
+            ['trial_ends', $t, '<'],
+            '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)',
+        ];
+        $this->assertEquals($expected, $members->getQuery()->getWhere());
+    }
+
     public function testSendTrialReminders()
     {
-        $model = Mockery::mock('TestBillingModel')->makePartial();
-        Test::$app['config']->set('billing.emails.trial_will_end', true);
-        Test::$app['config']->set('billing.emails.trial_ended', true);
+        $member = Mockery::mock('TestBillingModel[save]');
+        $member->shouldReceive('save')->once();
 
-        $modelMock = Mockery::mock();
-        $whereMock = Mockery::mock();
+        $member2 = Mockery::mock('TestBillingModel[save]');
+        $member2->shouldReceive('save')->once();
 
-        $member = Mockery::mock('TestBillingModel')->makePartial();
-        $email = [
-            'subject' => 'Your trial ends soon on Test Site',
-            'tags' => ['billing', 'trial-will-end'], ];
-        $member->shouldReceive('sendEmail')
-               ->withArgs(['trial-will-end', $email])
-               ->once();
-        $member->shouldReceive('grantAllPermissions');
-        $member->shouldReceive('set')
-               ->withArgs(['last_trial_reminder', time()]);
+        TestBillingModel::$endingSoon = [$member];
+        TestBillingModel::$ended = [$member2];
 
-        $modelMock->shouldReceive('where')
-            ->withArgs([[
-                'trial_ends >= '.strtotime('+2 days'),
-                'trial_ends <= '.strtotime('+3 days'),
-                'canceled' => 0,
-                'last_trial_reminder IS NULL', ]])
-            ->andReturn($whereMock);
+        $this->assertEquals([1, 1], TestBillingModel::sendTrialReminders());
 
-        $whereMock->shouldReceive('all')
-                  ->andReturn([$member])
-                  ->once();
+        $this->assertGreaterThan(0, $member->last_trial_reminder);
 
-        $member2 = Mockery::mock('TestBillingModel')->makePartial();
-        $email2 = [
-            'subject' => 'Your Test Site trial has ended',
-            'tags' => ['billing', 'trial-ended'], ];
-        $member2->shouldReceive('sendEmail')
-                ->withArgs(['trial-ended', $email2])
-                ->once();
-        $member2->shouldReceive('grantAllPermissions->save');
+        $expected = [
+            'trial-will-end',
+            [
+                'subject' => 'Your trial ends soon on Test Site',
+                'tags' => ['billing', 'trial-will-end'],
+            ],
+        ];
+        $this->assertEquals($expected, $member->lastEmail);
 
-        $whereMock2 = Mockery::mock();
+        $this->assertGreaterThan(0, $member2->last_trial_reminder);
 
-        $modelMock->shouldReceive('where')
-                  ->withArgs([[
-                    'trial_ends > 0',
-                    'trial_ends < '.time(),
-                    'renews_next' => 0,
-                    'canceled' => 0,
-                    '(last_trial_reminder < trial_ends OR last_trial_reminder IS NULL)', ]])
-                  ->andReturn($whereMock2);
-
-        $whereMock2->shouldReceive('all')
-                   ->andReturn([$member2])
-                   ->once();
-
-        TestBillingModel::setWhereMock($modelMock);
-
-        $this->assertTrue(TestBillingModel::sendTrialReminders(false));
+        $expected = [
+            'trial-ended',
+            [
+                'subject' => 'Your Test Site trial has ended',
+                'tags' => ['billing', 'trial-ended'],
+            ],
+        ];
+        $this->assertEquals($expected, $member2->lastEmail);
     }
 }
