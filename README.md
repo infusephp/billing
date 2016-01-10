@@ -1,5 +1,5 @@
-billing
-=================
+infuse/billing
+==============
 
 [![Build Status](https://travis-ci.org/infusephp/billing.svg?branch=master&style=flat)](https://travis-ci.org/infusephp/billing)
 [![Coverage Status](https://coveralls.io/repos/infusephp/billing/badge.svg?style=flat)](https://coveralls.io/r/infusephp/billing)
@@ -7,65 +7,65 @@ billing
 [![Total Downloads](https://poser.pugx.org/infuse/billing/downloads.svg?style=flat)](https://packagist.org/packages/infuse/billing)
 [![HHVM Status](http://hhvm.h4cc.de/badge/infuse/billing.svg?style=flat)](http://hhvm.h4cc.de/package/infuse/billing)
 
-Stripe billing module for Infuse Framework
+Subscription membership module for Infuse Framework powered by Stripe
 
 ## Installation
 
 1. Install the package with [composer](http://getcomposer.org):
 
-```
-composer require infuse/billing
-```
+		composer require infuse/billing
 
-2. Add a billing section to your `config.php`:
-```php
-[
-	'model' => 'App\Users\Models\\User',
-	'emails' => [
-		'trial_will_end' => true,
-		'trial_ended' => true,
-		'failed_payment' => true,
-		'payment_receipt' => true,
-		'subscription_canceled' => true
-	],
-	'defaultPlan' => 'default_plan',
-	'plans' => [
-		...
+2. Add a billing section in your app's configuration:
+
+	```php
+	'billing' => [
+		'model' => 'App\Users\Models\User',
+		'emails' => [
+			'trial_will_end' => true,
+			'trial_ended' => true,
+			'failed_payment' => true,
+			'payment_receipt' => true,
+			'subscription_canceled' => true
+		],
+		'defaultPlan' => 'default_plan'
 	]
-]
-```
+	```
 
-And add the console command to run jobs to `console.commands` in your app's configuration:
-```php
-'console' => [
-	// ...
-	'commands' => [
+3. Add the console command to run jobs to `console.commands` in your app's configuration:
+
+	```php
+	'console' => [
 		// ...
-		'App\Billing\Console\SyncStripeSubscriptionsCommand',
-		'App\Billing\Console\SyncStripeProfilesCommand'
+		'commands' => [
+			// ...
+			'App\Billing\Console\SyncStripeSubscriptionsCommand',
+			'App\Billing\Console\SyncStripeProfilesCommand'
+		]
 	]
-]
-```
+	```
 
-3. Add the following cron job to `cron.php`:
-```php
-[
-    'module' => 'billing',
-    'command' => 'sendTrialReminders',
-    'minute' => 0,
-    'expires' => 1800, // 30 minutes
-]
-```
+4. Add the following cron job to your app's configuration:
 
-4. (optional) Add an endpoint to your routing table to receive Stripe webhooks:
+	```php
+	'cron' => [
+		// ...
+		[
+		    'module' => 'billing',
+		    'command' => 'sendTrialReminders',
+		    'minute' => 0,
+		    'expires' => 1800 // 30 minutes
+		]
+	]
+	```
 
-```php
-'routes' => [
-	// ...
-	'POST /billing/webhook' => [
-		'App\Billing\Controller',
-		'webhook'
-    ]
-	// ...
-]
-```
+5. (optional) Add an endpoint to your routing table to receive Stripe webhooks:
+
+	```php
+	'routes' => [
+		// ...
+		'POST /billing/webhook' => [
+			'App\Billing\Controller',
+			'webhook'
+	    ]
+	]
+	```
