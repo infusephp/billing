@@ -22,5 +22,7 @@ class Controller extends StripeWebhook
 
         echo "-- Sent $m trial ending soon notifications\n";
         echo "-- Sent $n trial ended notifications\n";
+
+        return true;
     }
 }
