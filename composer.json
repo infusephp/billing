@@ -1,6 +1,6 @@
 {
 	"name": "infuse/billing",
-	"description": "Stripe billing module for Infuse Framework",
+	"description": "Subscription membership module for Infuse Framework powered by Stripe",
 	"type": "library",
 	"keywords": ["infuse","framework","billing","stripe","subscriptions"],
 	"license": "MIT",
