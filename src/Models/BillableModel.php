@@ -89,10 +89,10 @@ abstract class BillableModel extends ACLModel
     // HOOKS
     ////////////////////
 
-    protected function preCreateHook(&$data)
+    protected function preCreateHook()
     {
-        if (isset($data['not_charged']) && !$this->app['user']->isAdmin()) {
-            unset($data['not_charged']);
+        if (isset($this->not_charged) && !$this->app['user']->isAdmin()) {
+            unset($this->not_charged);
         }
 
         return true;
@@ -104,7 +104,7 @@ abstract class BillableModel extends ACLModel
             unset($data['not_charged']);
         }
 
-        if (isset($data['canceled']) && $data['canceled'] && !$this->canceled) {
+        if (isset($data['canceled']) && $data['canceled'] && !$this->ignoreUnsaved()->canceled) {
             $data['canceled_at'] = time();
         }
 
