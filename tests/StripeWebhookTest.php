@@ -62,7 +62,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         $expected = [
             'id' => $history->id(),
-            'uid' => 100,
+            'user_id' => 100,
             'payment_time' => 12,
             'amount' => 10,
             'stripe_customer' => 'cus_test',
@@ -101,7 +101,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
             'card_last4' => '1234',
             'card_expires' => '05/2014',
             'card_type' => 'Visa',
-            'tags' => ['billing','payment-received'], ];
+            'tags' => ['billing', 'payment-received'], ];
         $member->shouldReceive('sendEmail')->withArgs(['payment-received', $email])->once();
 
         $this->assertTrue(self::$webhook->handleChargeSucceeded($event, $member));
@@ -112,7 +112,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         $expected = [
             'id' => $history->id(),
-            'uid' => 100,
+            'user_id' => 100,
             'payment_time' => 12,
             'amount' => 10,
             'stripe_customer' => 'cus_test',

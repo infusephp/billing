@@ -19,7 +19,7 @@ class BillingHistory extends Model
     public static $scaffoldApi;
 
     protected static $properties = [
-        'uid' => [
+        'user_id' => [
             'type' => Model::TYPE_NUMBER,
         ],
         'payment_time' => [

@@ -31,7 +31,7 @@ class StripeWebhook extends WebhookController
 
         $history = new BillingHistory();
         $history->create([
-            'uid' => $member->id(),
+            'user_id' => $member->id(),
             'payment_time' => $eventData->created,
             'amount' => $eventData->amount / 100,
             'stripe_customer' => $eventData->customer,
@@ -83,7 +83,7 @@ class StripeWebhook extends WebhookController
 
         $history = new BillingHistory();
         $history->create([
-            'uid' => $member->id(),
+            'user_id' => $member->id(),
             'payment_time' => $eventData->created,
             'amount' => $eventData->amount / 100,
             'stripe_customer' => $eventData->customer,

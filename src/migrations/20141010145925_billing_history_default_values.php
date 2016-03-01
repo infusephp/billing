@@ -4,9 +4,6 @@ use Phinx\Migration\AbstractMigration;
 
 class BillingHistoryDefaultValues extends AbstractMigration
 {
-    /**
-     * Change Method.
-     */
     public function change()
     {
         $table = $this->table('BillingHistories');
