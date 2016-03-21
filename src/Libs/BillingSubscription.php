@@ -84,10 +84,10 @@ class BillingSubscription
                 return true;
             }
         } catch (StripeError $e) {
+            $this->app['logger']->debug($e);
             $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
-            $this->app['logger']->debug($e);
         }
 
         return false;
@@ -151,10 +151,10 @@ class BillingSubscription
                 return true;
             }
         } catch (StripeError $e) {
+            $this->app['logger']->debug($e);
             $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
-            $this->app['logger']->debug($e);
         }
 
         return false;

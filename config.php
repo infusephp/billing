@@ -8,8 +8,9 @@ return  [
     'salt' => 'replacewithrandomstring',
   ],
   'services' => [
-    'db' => 'Infuse\Services\Database',
-    'model_driver' => 'Infuse\Services\ModelDriver',
+    'db' => 'JAQB\Services\Database',
+    'errors' => 'App\Billing\Services\ErrorStack',
+    'model_driver' => 'App\Billing\Services\ModelDriver',
     'pdo' => 'Infuse\Services\Pdo',
   ],
   'models' => [
