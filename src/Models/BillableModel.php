@@ -3,6 +3,7 @@
 namespace App\Billing\Models;
 
 use App\Billing\Libs\BillingSubscription;
+use Infuse\Application;
 use Pulsar\ACLModel;
 use Pulsar\Model;
 use Stripe\Customer;
@@ -258,7 +259,8 @@ abstract class BillableModel extends ACLModel
 
     private static function sendTrialWillEndReminders()
     {
-        $config = self::$injectedApp['config'];
+        $app = Application::getDefault();
+        $config = $app['config'];
         if (!$config->get('billing.emails.trial_will_end')) {
             return 0;
         }
@@ -282,7 +284,8 @@ abstract class BillableModel extends ACLModel
 
     private static function sendTrialEndedReminders()
     {
-        $config = self::$injectedApp['config'];
+        $app = Application::getDefault();
+        $config = $app['config'];
         if (!$config->get('billing.emails.trial_ended')) {
             return 0;
         }
