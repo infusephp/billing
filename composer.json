@@ -20,7 +20,7 @@
     },
 	"require": {
 		"php": ">=5.4.0",
-		"stripe/stripe-php": "2.1.*"
+		"stripe/stripe-php": "~3.0"
 	},
 	"require-dev": {
 		"infuse/infuse": "~1.4",
