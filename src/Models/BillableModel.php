@@ -92,7 +92,7 @@ abstract class BillableModel extends ACLModel
 
     protected function preCreateHook()
     {
-        if (isset($this->not_charged) && !$this->app['user']->isAdmin()) {
+        if (isset($this->not_charged) && !$this->getApp()['user']->isAdmin()) {
             unset($this->not_charged);
         }
 
@@ -101,7 +101,7 @@ abstract class BillableModel extends ACLModel
 
     protected function preSetHook(&$data)
     {
-        if (isset($data['not_charged']) && !$this->app['user']->isAdmin()) {
+        if (isset($data['not_charged']) && !$this->getApp()['user']->isAdmin()) {
             unset($data['not_charged']);
         }
 
@@ -119,7 +119,9 @@ abstract class BillableModel extends ACLModel
      */
     public function stripeCustomer()
     {
-        $apiKey = $this->app['config']->get('stripe.secret');
+        $app = $this->getApp();
+
+        $apiKey = $app['config']->get('stripe.secret');
 
         // attempt to retreive the customer on stripe
         try {
@@ -127,8 +129,8 @@ abstract class BillableModel extends ACLModel
                 return Customer::retrieve($custId, $apiKey);
             }
         } catch (StripeError $e) {
-            $this->app['logger']->debug($e);
-            $this->app['errors']->push([
+            $app['logger']->debug($e);
+            $app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
 
@@ -139,7 +141,7 @@ abstract class BillableModel extends ACLModel
         try {
             // This is necessary because save() on stripe objects does
             // not accept an API key or save one from the retrieve() request
-            Stripe::setApiKey($this->app['config']->get('stripe.secret'));
+            Stripe::setApiKey($app['config']->get('stripe.secret'));
 
             $customer = Customer::create($this->stripeCustomerData(), $apiKey);
 
@@ -150,8 +152,8 @@ abstract class BillableModel extends ACLModel
 
             return $customer;
         } catch (StripeError $e) {
-            $this->app['logger']->debug($e);
-            $this->app['errors']->push([
+            $app['logger']->debug($e);
+            $app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
         }
@@ -170,6 +172,8 @@ abstract class BillableModel extends ACLModel
      */
     public function setDefaultCard($token)
     {
+        $app = $this->getApp();
+
         $customer = $this->stripeCustomer();
 
         if (!$customer || empty($token)) {
@@ -178,7 +182,7 @@ abstract class BillableModel extends ACLModel
 
         // This is necessary because save() on stripe objects does
         // not accept an API key or save one from the retrieve() request
-        Stripe::setApiKey($this->app['config']->get('stripe.secret'));
+        Stripe::setApiKey($app['config']->get('stripe.secret'));
 
         try {
             $customer->source = $token;
@@ -186,8 +190,8 @@ abstract class BillableModel extends ACLModel
 
             return true;
         } catch (StripeError $e) {
-            $this->app['logger']->debug($e);
-            $this->app['errors']->push([
+            $app['logger']->debug($e);
+            $app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
 
@@ -208,7 +212,7 @@ abstract class BillableModel extends ACLModel
             $plan = $this->plan;
         }
 
-        return new BillingSubscription($this, $plan, $this->app);
+        return new BillingSubscription($this, $plan, $this->getApp());
     }
 
     /**
