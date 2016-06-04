@@ -16,7 +16,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
             ->execute();
 
         self::$webhook = new StripeWebhook();
-        self::$webhook->injectApp(Test::$app);
+        self::$webhook->setApp(Test::$app);
 
         $model = Mockery::mock('Pulsar\Model');
         ACLModel::setRequester($model);

@@ -12,7 +12,7 @@ class WebhookControllerTest extends PHPUnit_Framework_TestCase
     public static function setUpBeforeClass()
     {
         self::$webhook = new TestController();
-        self::$webhook->injectApp(Test::$app);
+        self::$webhook->setApp(Test::$app);
 
         static::$modelDriver = TestBillingModel::getDriver();
     }
