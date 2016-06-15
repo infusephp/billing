@@ -20,8 +20,8 @@ class Controller extends StripeWebhook
 
         list($m, $n) = $modelClass::sendTrialReminders();
 
-        echo "-- Sent $m trial ending soon notifications\n";
-        echo "-- Sent $n trial ended notifications\n";
+        echo "Sent $m trial ending soon notifications\n";
+        echo "Sent $n trial ended notifications\n";
 
         return true;
     }
