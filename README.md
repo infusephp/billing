@@ -45,14 +45,14 @@ Subscription membership module for Infuse Framework powered by Stripe
 	]
 	```
 
-4. Add the following cron job to your app's configuration:
+4. (optional) Add the following scheduled job to your app's configuration:
 
 	```php
 	'cron' => [
 		// ...
 		[
-		    'module' => 'billing',
-		    'command' => 'sendTrialReminders',
+		    'id' => 'billing:sendTrialReminders',
+		    'class' => 'App\Billing\Jobs\SendTrialReminders',
 		    'minute' => 0,
 		    'expires' => 1800 // 30 minutes
 		]
