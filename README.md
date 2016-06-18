@@ -80,7 +80,7 @@ Subscription membership module for Infuse Framework powered by Stripe
 	'routes' => [
 		// ...
 		'POST /billing/webhook' => [
-			'App\Billing\Controller',
+			'App\Billing\Libs\StripeWebhook',
 			'webhook'
 	    ]
 	]
