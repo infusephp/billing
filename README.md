@@ -45,7 +45,22 @@ Subscription membership module for Infuse Framework powered by Stripe
 	]
 	```
 
-4. (optional) Add the following scheduled job to your app's configuration:
+4. Add the migration to your app's configuration:
+
+   ```php
+   'modules' => [
+      'migrations' => [
+         // ...
+         'Billing'
+      ],
+      'migrationPaths' => [
+         // ...
+         'Billing' => 'vendor/infuse/billing/src/migrations'
+      ]
+   ]
+   ```
+
+5. (optional) Add the following scheduled job to your app's configuration:
 
 	```php
 	'cron' => [
@@ -59,7 +74,7 @@ Subscription membership module for Infuse Framework powered by Stripe
 	]
 	```
 
-5. (optional) Add an endpoint to your routing table to receive Stripe webhooks:
+6. (optional) Add an endpoint to your routing table to receive Stripe webhooks:
 
 	```php
 	'routes' => [
