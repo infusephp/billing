@@ -172,7 +172,7 @@ class BillingSubscription
         }
 
         // no stripe customer means we have no subscription to cancel
-        if (!$this->model->stripe_customer) {
+        if (!$this->model->stripe_customer || $this->model->not_charged) {
             $this->model->canceled = true;
             $this->model->grantAllPermissions()->save();
 

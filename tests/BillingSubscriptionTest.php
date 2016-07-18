@@ -322,9 +322,40 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
         $member->canceled = false;
         $member->trial_ends = 0;
-        $member->not_charged = true;
+        $member->renews_next = strtotime('+1 month');
+        $member->not_charged = false;
         $member->plan = 'test';
         $member->stripe_customer = null;
+
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
+
+        $this->assertTrue($subscription->cancel());
+
+        $this->assertTrue($member->canceled);
+
+        $expected = [
+            'subscription-canceled',
+            [
+                'subject' => 'Your subscription to Test Site has been canceled',
+                'tags' => ['billing', 'subscription-canceled'],
+            ],
+        ];
+        $this->assertEquals($expected, $member->lastEmail);
+    }
+
+    public function testCancelNotCharged()
+    {
+        $resultSub = new stdClass();
+        $resultSub->status = 'canceled';
+
+        $member = Mockery::mock('TestBillingModel[save]');
+        $member->shouldReceive('save')->once();
+
+        $member->canceled = false;
+        $member->trial_ends = 0;
+        $member->not_charged = true;
+        $member->plan = 'test';
+        $member->stripe_customer = 'cust_test';
 
         $subscription = new BillingSubscription($member, 'test', Test::$app);
 
@@ -360,7 +391,8 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
         $member->canceled = false;
         $member->trial_ends = 0;
-        $member->not_charged = true;
+        $member->renews_next = strtotime('+1 month');
+        $member->not_charged = false;
         $member->plan = 'test';
         $member->stripe_customer = 'cust_test';
 
@@ -385,7 +417,8 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
         $member->canceled = false;
         $member->trial_ends = 0;
-        $member->not_charged = true;
+        $member->renews_next = strtotime('+1 month');
+        $member->not_charged = false;
         $member->plan = 'test';
         $member->stripe_customer = 'cust_test';
 
