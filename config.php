@@ -35,5 +35,6 @@ return  [
       'trial_ended' => true,
       'trial_will_end' => true,
     ],
+    'trialWillEndReminderDays' => 3,
   ],
 ];

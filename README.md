@@ -27,7 +27,8 @@ Subscription membership module for Infuse Framework powered by Stripe
 			'payment_receipt' => true,
 			'subscription_canceled' => true
 		],
-		'defaultPlan' => 'default_plan'
+		'defaultPlan' => 'default_plan',
+    	'trialWillEndReminderDays' => 3
 	]
 	```
 
