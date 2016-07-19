@@ -77,6 +77,8 @@ abstract class BillableModel extends ACLModel
         static::$hidden = array_merge(static::$hidden, ['stripe_customer', 'not_charged', 'last_trial_reminder']);
 
         parent::initialize();
+
+        self::creating([static::class, 'notChargedGuard']);
     }
 
     /**
@@ -90,13 +92,12 @@ abstract class BillableModel extends ACLModel
     // HOOKS
     ////////////////////
 
-    protected function preCreateHook()
+    public static function notChargedGuard($event)
     {
-        if (isset($this->not_charged) && !$this->getApp()['user']->isAdmin()) {
-            unset($this->not_charged);
+        $model = $event->getModel();
+        if (isset($model->not_charged) && !$model->getApp()['user']->isAdmin()) {
+            unset($model->not_charged);
         }
-
-        return true;
     }
 
     protected function preSetHook(&$data)
