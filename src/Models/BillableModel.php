@@ -4,6 +4,7 @@ namespace App\Billing\Models;
 
 use App\Billing\Libs\BillingSubscription;
 use Infuse\Application;
+use InvalidArgumentException;
 use Pulsar\ACLModel;
 use Pulsar\Model;
 use Stripe\Customer;
@@ -65,6 +66,11 @@ abstract class BillableModel extends ACLModel
     ];
 
     /**
+     * @var bool
+     */
+    private $_setNotCharged;
+
+    /**
      * @var the number of days left when the trial will end
      *          reminder should be sent
      */
@@ -95,22 +101,45 @@ abstract class BillableModel extends ACLModel
     public static function notChargedGuard($event)
     {
         $model = $event->getModel();
-        if (isset($model->not_charged) && !$model->getApp()['user']->isAdmin()) {
-            unset($model->not_charged);
+        if (isset($model->not_charged) && $model->not_charged && !$model->_setNotCharged) {
+            throw new InvalidArgumentException('Tried to disable charging on '.static::modelName().' without using isNotCharged()');
         }
+
+        $model->_setNotCharged = false;
     }
 
     protected function preSetHook(&$data)
     {
-        if (isset($data['not_charged']) && !$this->getApp()['user']->isAdmin()) {
-            unset($data['not_charged']);
+        if (isset($data['not_charged']) && $data['not_charged'] && !$this->_setNotCharged) {
+            throw new InvalidArgumentException('Tried to disable charging on '.static::modelName().' without using isNotCharged()');
         }
+        $this->_setNotCharged = false;
 
         if (isset($data['canceled']) && $data['canceled'] && !$this->ignoreUnsaved()->canceled) {
             $data['canceled_at'] = time();
         }
 
         return true;
+    }
+
+    ////////////////////
+    // GETTERS
+    ////////////////////
+
+    /**
+     * Retreives the subscription for this model.
+     *
+     * @param string $plan optional billing plan to use
+     *
+     * @return BillingSubscription
+     */
+    public function subscription($plan = false)
+    {
+        if (!$plan) {
+            $plan = $this->plan;
+        }
+
+        return new BillingSubscription($this, $plan, $this->getApp());
     }
 
     /**
@@ -162,6 +191,36 @@ abstract class BillableModel extends ACLModel
         return false;
     }
 
+    ////////////////////
+    // SETTERS
+    ////////////////////
+
+    /**
+     * Enables charging for the model.
+     *
+     * @return self
+     */
+    public function isCharged()
+    {
+        $this->not_charged = false;
+        $this->_setNotCharged = true;
+
+        return $this;
+    }
+
+    /**
+     * Disables charging for the model.
+     *
+     * @return self
+     */
+    public function isNotCharged()
+    {
+        $this->not_charged = true;
+        $this->_setNotCharged = true;
+
+        return $this;
+    }
+
     /**
      * Sets the default source to charge for the customer in Stripe. If
      * there is an existing default source, it will be deleted and replaced
@@ -198,22 +257,6 @@ abstract class BillableModel extends ACLModel
 
             return false;
         }
-    }
-
-    /**
-     * Retreives the subscription for this model.
-     *
-     * @param string $plan optional billing plan to use
-     *
-     * @return BillingSubscription
-     */
-    public function subscription($plan = false)
-    {
-        if (!$plan) {
-            $plan = $this->plan;
-        }
-
-        return new BillingSubscription($this, $plan, $this->getApp());
     }
 
     /**

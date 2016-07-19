@@ -1,20 +1,30 @@
 <?php
 
 use Infuse\Test;
+use Pulsar\ACLModel;
 use Stripe\Error\Api as StripeError;
 
 class BillingModelTest extends PHPUnit_Framework_TestCase
 {
-    public static $modelDriver;
+    public static $model;
+    public static $originalDriver;
 
     public static function setUpBeforeClass()
     {
-        static::$modelDriver = TestBillingModel::getDriver();
+        ACLModel::setRequester(Mockery::mock('Pulsar\Model'));
+
+        self::$originalDriver = TestBillingModel::getDriver();
+        $driver = Mockery::mock('Pulsar\Driver\DriverInterface');
+        $driver->shouldReceive('createModel')->andReturn(true);
+        $driver->shouldReceive('getCreatedID')->andReturn(1);
+        $driver->shouldReceive('updateModel')->andReturn(true);
+        $driver->shouldReceive('loadModel')->andReturn([]);
+        TestBillingModel::setDriver($driver);
     }
 
-    protected function tearDown()
+    public static function tearDownAfterClass()
     {
-        TestBillingModel::setDriver(static::$modelDriver);
+        TestBillingModel::setDriver(self::$originalDriver);
     }
 
     public function testProperties()
@@ -27,7 +37,8 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
             'past_due',
             'canceled',
             'canceled_at',
-            'not_charged', ];
+            'not_charged',
+        ];
 
         $model = new TestBillingModel(); // ensure initialize() called
         foreach ($props as $k) {
@@ -37,12 +48,14 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
 
     public function testCreate()
     {
-        $this->markTestIncomplete();
+        self::$model = new TestBillingModel();
+        $this->assertTrue(self::$model->save());
     }
 
     public function testSet()
     {
-        $this->markTestIncomplete();
+        self::$model->plan = 'test-plan';
+        $this->assertTrue(self::$model->save());
     }
 
     public function testStripeCustomerRetrieve()
@@ -183,6 +196,20 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
         $subscription = $testModel->subscription('blah');
         $this->assertInstanceOf('App\Billing\Libs\BillingSubscription', $subscription);
         $this->assertEquals('blah', $subscription->plan());
+    }
+
+    public function testIsCharged()
+    {
+        self::$model->isCharged();
+        $this->assertFalse(self::$model->not_charged);
+        $this->assertTrue(self::$model->save());
+    }
+
+    public function testIsNotCharged()
+    {
+        self::$model->isNotCharged();
+        $this->assertTrue(self::$model->not_charged);
+        $this->assertTrue(self::$model->save());
     }
 
     public function testGetTrialsEndingSoon()
