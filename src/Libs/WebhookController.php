@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Billing\Libs;
+namespace Infuse\Billing\Libs;
 
 use ICanBoogie\Inflector;
 use Infuse\Application;

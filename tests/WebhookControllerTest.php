@@ -1,6 +1,6 @@
 <?php
 
-use App\Billing\Libs\WebhookController;
+use Infuse\Billing\Libs\WebhookController;
 use Infuse\Test;
 use Stripe\Error\Api as StripeError;
 

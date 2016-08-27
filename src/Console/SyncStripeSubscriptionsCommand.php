@@ -8,7 +8,8 @@
  * @copyright 2015 Jared King
  * @license MIT
  */
-namespace App\Billing\Console;
+
+namespace Infuse\Billing\Console;
 
 use Infuse\HasApp;
 use Stripe\Stripe;

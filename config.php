@@ -9,8 +9,8 @@ return  [
   ],
   'services' => [
     'db' => 'JAQB\Services\Database',
-    'errors' => 'App\Billing\Services\ErrorStack',
-    'model_driver' => 'App\Billing\Services\ModelDriver',
+    'errors' => 'Infuse\Billing\Services\ErrorStack',
+    'model_driver' => 'Infuse\Billing\Services\ModelDriver',
     'pdo' => 'Infuse\Services\Pdo',
   ],
   'models' => [

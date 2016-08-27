@@ -8,7 +8,8 @@
  * @copyright 2015 Jared King
  * @license MIT
  */
-namespace App\Billing\Services;
+
+namespace Infuse\Billing\Services;
 
 use Pulsar\Model;
 use Pulsar\Validate;

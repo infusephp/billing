@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Billing\Libs;
+namespace Infuse\Billing\Libs;
 
-use App\Billing\Models\BillingHistory;
+use Infuse\Billing\Models\BillingHistory;
 use Stripe\Customer;
 
 class StripeWebhook extends WebhookController

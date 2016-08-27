@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Billing\Models;
+namespace Infuse\Billing\Models;
 
-use App\Billing\Libs\BillingSubscription;
+use Infuse\Billing\Libs\BillingSubscription;
 use InvalidArgumentException;
 use Pulsar\ACLModel;
 use Pulsar\Model;
@@ -77,7 +77,7 @@ abstract class BillableModel extends ACLModel
 
         parent::initialize();
 
-        self::creating([static::class, 'notChargedGuard']);
+        self::creating([get_called_class(), 'notChargedGuard']);
     }
 
     /**

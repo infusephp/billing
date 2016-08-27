@@ -1,6 +1,6 @@
 <?php
 
-use App\Billing\Models\BillableModel;
+use Infuse\Billing\Models\BillableModel;
 use Pulsar\Model;
 
 class TestBillingModel extends BillableModel

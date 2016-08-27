@@ -10,7 +10,8 @@
  * @copyright 2013 Jared King
  * @license MIT
  */
-namespace App\Billing\Models;
+
+namespace Infuse\Billing\Models;
 
 use Pulsar\Model;
 

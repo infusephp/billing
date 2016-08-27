@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Billing\Libs;
+namespace Infuse\Billing\Libs;
 
 use Infuse\Application;
-use App\Billing\Models\BillableModel;
+use Infuse\Billing\Models\BillableModel;
 use Stripe\Error\Base as StripeError;
 
 class BillingSubscription

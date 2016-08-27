@@ -39,9 +39,9 @@ Subscription membership module for Infuse Framework powered by Stripe
 		// ...
 		'commands' => [
 			// ...
-			'App\Billing\Console\ExtendTrialCommand',
-			'App\Billing\Console\SyncStripeSubscriptionsCommand',
-			'App\Billing\Console\SyncStripeProfilesCommand'
+			'Infuse\Billing\Console\ExtendTrialCommand',
+			'Infuse\Billing\Console\SyncStripeSubscriptionsCommand',
+			'Infuse\Billing\Console\SyncStripeProfilesCommand'
 		]
 	]
 	```
@@ -68,7 +68,7 @@ Subscription membership module for Infuse Framework powered by Stripe
 		// ...
 		[
 		    'id' => 'billing:sendTrialReminders',
-		    'class' => 'App\Billing\Jobs\SendTrialReminders',
+		    'class' => 'Infuse\Billing\Jobs\SendTrialReminders',
 		    'minute' => 0,
 		    'expires' => 1800 // 30 minutes
 		]
@@ -81,7 +81,7 @@ Subscription membership module for Infuse Framework powered by Stripe
 	'routes' => [
 		// ...
 		'POST /billing/webhook' => [
-			'App\Billing\Libs\StripeWebhook',
+			'Infuse\Billing\Libs\StripeWebhook',
 			'webhook'
 	    ]
 	]

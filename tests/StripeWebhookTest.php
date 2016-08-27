@@ -1,7 +1,7 @@
 <?php
 
-use App\Billing\Libs\StripeWebhook;
-use App\Billing\Models\BillingHistory;
+use Infuse\Billing\Libs\StripeWebhook;
+use Infuse\Billing\Models\BillingHistory;
 use Infuse\Test;
 use Pulsar\ACLModel;
 
@@ -58,7 +58,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         $history = BillingHistory::where('stripe_transaction', 'charge_failed')
             ->first();
-        $this->assertInstanceOf('App\Billing\Models\BillingHistory', $history);
+        $this->assertInstanceOf('Infuse\Billing\Models\BillingHistory', $history);
 
         $expected = [
             'id' => $history->id(),
@@ -108,7 +108,7 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
         $history = BillingHistory::where('stripe_transaction', 'charge_succeeded')
             ->first();
-        $this->assertInstanceOf('App\Billing\Models\BillingHistory', $history);
+        $this->assertInstanceOf('Infuse\Billing\Models\BillingHistory', $history);
 
         $expected = [
             'id' => $history->id(),

@@ -1,6 +1,6 @@
 <?php
 
-use App\Billing\Jobs\SendTrialReminders;
+use Infuse\Billing\Jobs\SendTrialReminders;
 use Infuse\Test;
 use Pulsar\ACLModel;
 
@@ -69,7 +69,7 @@ class SendTrialRemindersTest extends PHPUnit_Framework_TestCase
 
     public function testSendTrialReminders()
     {
-        $job = Mockery::mock('App\Billing\Jobs\SendTrialReminders[getTrialsEndingSoon,getEndedTrials]');
+        $job = Mockery::mock('Infuse\Billing\Jobs\SendTrialReminders[getTrialsEndingSoon,getEndedTrials]');
         $job->setApp(Test::$app);
 
         $member = Mockery::mock('TestBillingModel[save]');
@@ -121,7 +121,7 @@ class SendTrialRemindersTest extends PHPUnit_Framework_TestCase
         $run = Mockery::mock();
         $run->shouldReceive('writeOutput');
 
-        $job = Mockery::mock('App\Billing\Jobs\SendTrialReminders[sendTrialReminders]');
+        $job = Mockery::mock('Infuse\Billing\Jobs\SendTrialReminders[sendTrialReminders]');
         $job->shouldReceive('sendTrialReminders')
             ->andReturn([0, 0])
             ->once();

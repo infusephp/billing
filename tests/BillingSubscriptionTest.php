@@ -1,6 +1,6 @@
 <?php
 
-use App\Billing\Libs\BillingSubscription;
+use Infuse\Billing\Libs\BillingSubscription;
 use Infuse\Test;
 use Stripe\Error\Api as StripeError;
 

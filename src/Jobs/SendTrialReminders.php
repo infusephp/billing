@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Billing\Jobs;
+namespace Infuse\Billing\Jobs;
 
 use Infuse\HasApp;
 
