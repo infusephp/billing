@@ -163,9 +163,11 @@ class BillingSubscription
     /**
      * Cancels the subscription.
      *
+     * @param bool $atPeriodEnd when true, cancels the subscription at the end of the billing period
+     *
      * @return bool
      */
-    public function cancel()
+    public function cancel($atPeriodEnd = false)
     {
         if (!$this->active()) {
             return false;
@@ -193,11 +195,22 @@ class BillingSubscription
             return false;
         }
 
+        $params = [];
+        if ($atPeriodEnd) {
+            $params['at_period_end'] = true;
+        }
+
         try {
-            $subscription = $customer->cancelSubscription();
+            $subscription = $customer->cancelSubscription($params);
 
             if ($subscription->status == 'canceled') {
                 $this->model->canceled = true;
+                $this->model->grantAllPermissions()->save();
+                $this->model->enforcePermissions();
+
+                return true;
+            } elseif ($subscription->cancel_at_period_end && $atPeriodEnd) {
+                $this->model->canceled_at = $subscription->canceled_at;
                 $this->model->grantAllPermissions()->save();
                 $this->model->enforcePermissions();
 

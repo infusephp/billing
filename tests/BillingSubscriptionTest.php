@@ -403,6 +403,40 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($member->canceled);
     }
 
+    public function testCancelAtPeriodEnd()
+    {
+        $resultSub = new stdClass();
+        $resultSub->status = 'active';
+        $resultSub->cancel_at_period_end = true;
+        $resultSub->canceled_at = time();
+
+        $customer = Mockery::mock('StripeCustomer');
+        $customer->shouldReceive('cancelSubscription')
+                 ->withArgs([['at_period_end' => true]])
+                 ->andReturn($resultSub)
+                 ->once();
+
+        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member->shouldReceive('stripeCustomer')
+                ->andReturn($customer)
+                ->once();
+        $member->shouldReceive('save')->once();
+
+        $member->canceled = false;
+        $member->trial_ends = 0;
+        $member->renews_next = strtotime('+1 month');
+        $member->not_charged = false;
+        $member->plan = 'test';
+        $member->stripe_customer = 'cust_test';
+
+        $subscription = new BillingSubscription($member, 'test', Test::$app);
+
+        $this->assertTrue($subscription->cancel(true));
+
+        $this->assertFalse($member->canceled);
+        $this->assertEquals($resultSub->canceled_at, $member->canceled_at);
+    }
+
     public function testCancelFail()
     {
         $e = new StripeError('error');
