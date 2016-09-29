@@ -30,7 +30,7 @@ class WebhookController
      */
     public function webhook($req, $res)
     {
-        $this->app['user']->enableSU();
+        $this->app['user']->promoteToSuperUser();
 
         $res->setBody($this->handle($req->request()));
     }
