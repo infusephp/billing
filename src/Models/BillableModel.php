@@ -18,49 +18,35 @@ abstract class BillableModel extends ACLModel
         ],
         'stripe_customer' => [
             'null' => true,
-            'admin_html' => '<a href="https://manage.stripe.com/customers/{stripe_customer}" target="_blank">{stripe_customer}</a>',
         ],
         'renews_next' => [
             'type' => Model::TYPE_DATE,
             'null' => true,
-            'admin_type' => 'datepicker',
-            'admin_hidden_property' => true,
         ],
         'trial_ends' => [
             'type' => Model::TYPE_DATE,
             'null' => true,
-            'admin_type' => 'datepicker',
-            'admin_hidden_property' => true,
         ],
         'past_due' => [
             'type' => Model::TYPE_BOOLEAN,
             'default' => false,
-            'admin_type' => 'checkbox',
-            'admin_hidden_property' => true,
         ],
         'canceled' => [
             'type' => Model::TYPE_BOOLEAN,
             'default' => false,
-            'admin_type' => 'checkbox',
             'default' => false,
         ],
         'canceled_at' => [
             'type' => Model::TYPE_DATE,
             'null' => true,
-            'admin_type' => 'datepicker',
-            'admin_hidden_property' => true,
         ],
         'not_charged' => [
             'type' => Model::TYPE_BOOLEAN,
             'default' => false,
-            'admin_type' => 'checkbox',
-            'admin_hidden_property' => true,
         ],
         'last_trial_reminder' => [
             'type' => Model::TYPE_DATE,
             'null' => true,
-            'admin_type' => 'datepicker',
-            'admin_hidden_property' => true,
         ],
     ];
 
