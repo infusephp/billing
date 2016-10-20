@@ -5,6 +5,7 @@ namespace Infuse\Billing\Libs;
 use Infuse\Application;
 use Infuse\Billing\Models\BillableModel;
 use Stripe\Error\Base as StripeError;
+use Stripe\Error\Card as StripeCardError;
 
 class BillingSubscription
 {
@@ -84,7 +85,11 @@ class BillingSubscription
                 return true;
             }
         } catch (StripeError $e) {
-            $this->app['logger']->debug($e);
+            // log any errors not related to invalid cards
+            if (!($e instanceof StripeCardError)) {
+                $this->app['logger']->error($e);
+            }
+
             $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
@@ -151,7 +156,11 @@ class BillingSubscription
                 return true;
             }
         } catch (StripeError $e) {
-            $this->app['logger']->debug($e);
+            // log any errors not related to invalid cards
+            if (!($e instanceof StripeCardError)) {
+                $this->app['logger']->error($e);
+            }
+
             $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
@@ -217,7 +226,11 @@ class BillingSubscription
                 return true;
             }
         } catch (StripeError $e) {
-            $this->app['logger']->debug($e);
+            // log any errors not related to invalid cards
+            if (!($e instanceof StripeCardError)) {
+                $this->app['logger']->error($e);
+            }
+
             $this->app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);

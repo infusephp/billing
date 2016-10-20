@@ -8,6 +8,7 @@ use Pulsar\ACLModel;
 use Pulsar\Model;
 use Stripe\Customer;
 use Stripe\Error\Base as StripeError;
+use Stripe\Error\Card as StripeCardError;
 use Stripe\Stripe;
 
 abstract class BillableModel extends ACLModel
@@ -161,7 +162,11 @@ abstract class BillableModel extends ACLModel
 
             return $customer;
         } catch (StripeError $e) {
-            $app['logger']->debug($e);
+            // log any errors not related to invalid cards
+            if (!($e instanceof StripeCardError)) {
+                $app['logger']->error($e);
+            }
+
             $app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
@@ -229,7 +234,11 @@ abstract class BillableModel extends ACLModel
 
             return true;
         } catch (StripeError $e) {
-            $app['logger']->debug($e);
+            // log any errors not related to invalid cards
+            if (!($e instanceof StripeCardError)) {
+                $app['logger']->error($e);
+            }
+
             $app['errors']->push([
                 'error' => 'stripe_error',
                 'message' => $e->getMessage(), ]);
