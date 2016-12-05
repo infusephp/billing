@@ -24,7 +24,7 @@ class SyncStripeProfilesCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('sync-stripe-profiles')
+            ->setName('billing:sync-stripe-profiles')
             ->setDescription('Syncs Stripe profiles with the database (warning: takes a really long time)');
     }
 

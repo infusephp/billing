@@ -24,7 +24,7 @@ class ExtendTrialCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('extend-trial')
+            ->setName('billing:extend-trial')
             ->setDescription('Extends the free trial')
             ->addArgument(
                 'member',

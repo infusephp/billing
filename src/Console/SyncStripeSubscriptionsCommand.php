@@ -25,7 +25,7 @@ class SyncStripeSubscriptionsCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('sync-stripe-subscriptions')
+            ->setName('billing:sync-stripe-subscriptions')
             ->setDescription('Outputs difference between our database and Stripe subscriptions with the option to update the database (warning: takes a really long time)')
             ->addOption(
                 'confirm',
