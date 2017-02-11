@@ -3,6 +3,7 @@
 namespace Infuse\Billing\Models;
 
 use Infuse\Billing\Libs\BillingSubscription;
+use Infuse\HasApp;
 use InvalidArgumentException;
 use Pulsar\ACLModel;
 use Pulsar\Model;
@@ -13,6 +14,8 @@ use Stripe\Stripe;
 
 abstract class BillableModel extends ACLModel
 {
+    use HasApp;
+
     private static $billingProperties = [
         'plan' => [
             'null' => true,
