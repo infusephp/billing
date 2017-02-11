@@ -45,4 +45,8 @@ class BillingHistory extends Model
             'searchable' => true,
         ],
     ];
+
+    protected static $casts = [];
+    protected static $validations = [];
+    protected static $protected = [];
 }
