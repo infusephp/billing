@@ -11,7 +11,8 @@ class StripeWebhookTest extends PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
-        Test::$app['db']->delete('BillingHistories')
+        Test::$app['database']->getDefault()
+            ->delete('BillingHistories')
             ->where('stripe_transaction', 'charge_failed')
             ->execute();
 

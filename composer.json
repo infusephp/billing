@@ -24,7 +24,7 @@
 	},
 	"require-dev": {
 		"infuse/infuse": "~1.4",
-		"pulsar/pulsar": "~0.1",
+		"pulsar/pulsar": "~0.4",
 		"satooshi/php-coveralls": "0.6.1",
 		"mockery/mockery": "~0.9",
 		"robmorgan/phinx": "~0.5"
