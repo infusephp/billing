@@ -19,13 +19,13 @@ class BillingHistory extends Model
 {
     protected static $properties = [
         'user_id' => [
-            'type' => Model::TYPE_NUMBER,
+            'type' => Model::TYPE_INTEGER,
         ],
         'payment_time' => [
             'type' => Model::TYPE_DATE,
         ],
         'amount' => [
-            'type' => Model::TYPE_NUMBER,
+            'type' => Model::TYPE_FLOAT,
             'searchable' => true,
         ],
         'stripe_customer' => [
