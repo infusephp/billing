@@ -142,7 +142,7 @@ class StripeWebhook extends WebhookController
         }
 
         if (!in_array($eventData->status, ['trialing', 'unpaid'])) {
-            $member->trial_ends = 0;
+            $member->trial_ends = null;
         }
 
         $member->save();

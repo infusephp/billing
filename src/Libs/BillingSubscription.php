@@ -76,7 +76,7 @@ class BillingSubscription
                 $this->model->canceled_at = null;
 
                 if ($subscription->status == 'active') {
-                    $this->model->trial_ends = 0;
+                    $this->model->trial_ends = null;
                 }
 
                 $this->model->grantAllPermissions()->save();
@@ -145,7 +145,7 @@ class BillingSubscription
                 $this->model->canceled_at = null;
 
                 if ($subscription->status == 'active') {
-                    $this->model->trial_ends = 0;
+                    $this->model->trial_ends = null;
                 }
 
                 $this->model->grantAllPermissions()->save();
