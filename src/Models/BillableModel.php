@@ -143,9 +143,7 @@ abstract class BillableModel extends ACLModel
             }
         } catch (StripeError $e) {
             $app['logger']->debug($e);
-            $app['errors']->push([
-                'error' => 'stripe_error',
-                'message' => $e->getMessage(), ]);
+            $this->getErrors()->add($e->getMessage());
 
             return false;
         }
@@ -170,9 +168,7 @@ abstract class BillableModel extends ACLModel
                 $app['logger']->error($e);
             }
 
-            $app['errors']->push([
-                'error' => 'stripe_error',
-                'message' => $e->getMessage(), ]);
+            $this->getErrors()->add($e->getMessage());
         }
 
         return false;
@@ -242,9 +238,7 @@ abstract class BillableModel extends ACLModel
                 $app['logger']->error($e);
             }
 
-            $app['errors']->push([
-                'error' => 'stripe_error',
-                'message' => $e->getMessage(), ]);
+            $this->getErrors()->add($e->getMessage());
 
             return false;
         }

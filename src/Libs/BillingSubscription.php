@@ -90,9 +90,7 @@ class BillingSubscription
                 $this->app['logger']->error($e);
             }
 
-            $this->app['errors']->push([
-                'error' => 'stripe_error',
-                'message' => $e->getMessage(), ]);
+            $this->model->getErrors()->add($e->getMessage());
         }
 
         return false;
@@ -161,9 +159,7 @@ class BillingSubscription
                 $this->app['logger']->error($e);
             }
 
-            $this->app['errors']->push([
-                'error' => 'stripe_error',
-                'message' => $e->getMessage(), ]);
+            $this->model->getErrors()->add($e->getMessage());
         }
 
         return false;
@@ -231,9 +227,7 @@ class BillingSubscription
                 $this->app['logger']->error($e);
             }
 
-            $this->app['errors']->push([
-                'error' => 'stripe_error',
-                'message' => $e->getMessage(), ]);
+            $this->model->getErrors()->add($e->getMessage());
         }
 
         return false;
