@@ -11,7 +11,9 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
 
     public static function setUpBeforeClass()
     {
-        ACLModel::setRequester(Mockery::mock('Pulsar\Model'));
+        $requester = Mockery::mock('Pulsar\Model');
+        $requester->shouldReceive('id')->andReturn(1);
+        ACLModel::setRequester($requester);
 
         self::$originalDriver = TestBillingModel::getDriver();
         $driver = Mockery::mock('Pulsar\Driver\DriverInterface');
