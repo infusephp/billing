@@ -3,8 +3,9 @@
 use Infuse\Billing\Libs\WebhookController;
 use Infuse\Test;
 use Stripe\Error\Api as StripeError;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class WebhookControllerTest extends PHPUnit_Framework_TestCase
+class WebhookControllerTest extends MockeryTestCase
 {
     public static $webhook;
     public static $modelDriver;

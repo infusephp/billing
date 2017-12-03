@@ -4,8 +4,9 @@ use Infuse\Billing\Libs\StripeWebhook;
 use Infuse\Billing\Models\BillingHistory;
 use Infuse\Test;
 use Pulsar\ACLModel;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class StripeWebhookTest extends PHPUnit_Framework_TestCase
+class StripeWebhookTest extends MockeryTestCase
 {
     public static $webhook;
 

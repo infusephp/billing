@@ -3,8 +3,10 @@
 use Infuse\Billing\Libs\BillingSubscription;
 use Infuse\Test;
 use Stripe\Error\Api as StripeError;
+use Infuse\Billing\Exception\BillingException;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
+class BillingSubscriptionTest extends MockeryTestCase
 {
     public function testPlan()
     {
@@ -213,6 +215,8 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
     public function testCreateFail()
     {
+        $this->expectException(BillingException::class);
+
         $e = new StripeError('error');
         $customer = Mockery::mock('StripeCustomer');
         $customer->shouldReceive('updateSubscription')
@@ -226,7 +230,7 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
         $subscription = new BillingSubscription($member, 'test', Test::$app);
 
-        $this->assertFalse($subscription->create('tok_test'));
+        $subscription->create('tok_test');
     }
 
     public function testCannotChange()
@@ -287,6 +291,8 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
     public function testChangeFail()
     {
+        $this->expectException(BillingException::class);
+
         $e = new StripeError('error');
         $customer = Mockery::mock('StripeCustomer');
         $customer->shouldReceive('updateSubscription')
@@ -309,7 +315,7 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
         $subscription = new BillingSubscription($member, 'test', Test::$app);
 
-        $this->assertFalse($subscription->change('blah', true));
+        $subscription->change('blah', true);
     }
 
     public function testCancelNoStripeCustomer()
@@ -439,6 +445,8 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
     public function testCancelFail()
     {
+        $this->expectException(BillingException::class);
+
         $e = new StripeError('error');
         $customer = Mockery::mock('StripeCustomer');
         $customer->shouldReceive('cancelSubscription')
@@ -458,6 +466,6 @@ class BillingSubscriptionTest extends PHPUnit_Framework_TestCase
 
         $subscription = new BillingSubscription($member, 'test', Test::$app);
 
-        $this->assertFalse($subscription->cancel());
+        $subscription->cancel();
     }
 }

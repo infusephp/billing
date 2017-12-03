@@ -5,7 +5,6 @@ infuse/billing
 [![Coverage Status](https://coveralls.io/repos/infusephp/billing/badge.svg?style=flat)](https://coveralls.io/r/infusephp/billing)
 [![Latest Stable Version](https://poser.pugx.org/infuse/billing/v/stable.svg?style=flat)](https://packagist.org/packages/infuse/billing)
 [![Total Downloads](https://poser.pugx.org/infuse/billing/downloads.svg?style=flat)](https://packagist.org/packages/infuse/billing)
-[![HHVM Status](http://hhvm.h4cc.de/badge/infuse/billing.svg?style=flat)](http://hhvm.h4cc.de/package/infuse/billing)
 
 Subscription membership module for Infuse Framework powered by Stripe
 

@@ -3,6 +3,7 @@
 namespace Infuse\Billing\Libs;
 
 use Infuse\Application;
+use Infuse\Billing\Exception\BillingException;
 use Infuse\Billing\Models\BillableModel;
 use Stripe\Error\Base as StripeError;
 use Stripe\Error\Card as StripeCardError;
@@ -37,6 +38,8 @@ class BillingSubscription
      * @param string $token   optional Stripe token to use for the plan
      * @param bool   $noTrial when true, immediately ends (skips) the trial period for the new subscription
      * @param array  $params  optional parameters to pass to stripe when creating subscription
+     *
+     * @throws BillingException when the operation fails.
      *
      * @return bool
      */
@@ -90,7 +93,7 @@ class BillingSubscription
                 $this->app['logger']->error($e);
             }
 
-            $this->model->getErrors()->add($e->getMessage());
+            throw new BillingException($e->getMessage(), $e->getCode(), $e);
         }
 
         return false;
@@ -102,6 +105,8 @@ class BillingSubscription
      * @param string $plan    stripe plan id
      * @param bool   $noTrial when true, immediately ends (skips) the trial period for the new subscription
      * @param array  $params  optional parameters to pass to stripe when creating subscription
+     *
+     * @throws BillingException when the operation fails.
      *
      * @return bool result
      */
@@ -150,25 +155,25 @@ class BillingSubscription
                 $this->model->enforcePermissions();
 
                 $this->plan = $plan;
-
-                return true;
             }
+
+            return true;
         } catch (StripeError $e) {
             // log any errors not related to invalid cards
             if (!($e instanceof StripeCardError)) {
                 $this->app['logger']->error($e);
             }
 
-            $this->model->getErrors()->add($e->getMessage());
+            throw new BillingException($e->getMessage(), $e->getCode(), $e);
         }
-
-        return false;
     }
 
     /**
      * Cancels the subscription.
      *
      * @param bool $atPeriodEnd when true, cancels the subscription at the end of the billing period
+     *
+     * @throws BillingException when the operation fails.
      *
      * @return bool
      */
@@ -227,7 +232,7 @@ class BillingSubscription
                 $this->app['logger']->error($e);
             }
 
-            $this->model->getErrors()->add($e->getMessage());
+            throw new BillingException($e->getMessage(), $e->getCode(), $e);
         }
 
         return false;

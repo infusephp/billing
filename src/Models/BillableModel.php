@@ -2,6 +2,7 @@
 
 namespace Infuse\Billing\Models;
 
+use Infuse\Billing\Exception\BillingException;
 use Infuse\Billing\Libs\BillingSubscription;
 use Infuse\HasApp;
 use InvalidArgumentException;
@@ -128,6 +129,8 @@ abstract class BillableModel extends ACLModel
     /**
      * Attempts to create or retrieve the Stripe Customer for this model.
      *
+     * @throws BillingException when the operation fails.
+     *
      * @return Customer|false
      */
     public function stripeCustomer()
@@ -143,9 +146,7 @@ abstract class BillableModel extends ACLModel
             }
         } catch (StripeError $e) {
             $app['logger']->debug($e);
-            $this->getErrors()->add($e->getMessage());
-
-            return false;
+            throw new BillingException($e->getMessage(), $e->getCode(), $e);
         }
 
         // create the customer on stripe
@@ -168,10 +169,8 @@ abstract class BillableModel extends ACLModel
                 $app['logger']->error($e);
             }
 
-            $this->getErrors()->add($e->getMessage());
+            throw new BillingException($e->getMessage(), $e->getCode(), $e);
         }
-
-        return false;
     }
 
     ////////////////////
@@ -211,6 +210,8 @@ abstract class BillableModel extends ACLModel
      *
      * @param string $token
      *
+     * @throws BillingException when the operation fails.
+     *
      * @return bool
      */
     public function setDefaultCard($token)
@@ -238,9 +239,7 @@ abstract class BillableModel extends ACLModel
                 $app['logger']->error($e);
             }
 
-            $this->getErrors()->add($e->getMessage());
-
-            return false;
+            throw new BillingException($e->getMessage(), $e->getCode(), $e);
         }
     }
 }

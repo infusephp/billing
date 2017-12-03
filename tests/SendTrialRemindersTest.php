@@ -3,8 +3,9 @@
 use Infuse\Billing\Jobs\SendTrialReminders;
 use Infuse\Test;
 use Pulsar\ACLModel;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class SendTrialRemindersTest extends PHPUnit_Framework_TestCase
+class SendTrialRemindersTest extends MockeryTestCase
 {
     public static $originalDriver;
     public static $driver;

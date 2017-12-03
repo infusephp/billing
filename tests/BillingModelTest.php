@@ -1,10 +1,12 @@
 <?php
 
+use Infuse\Billing\Exception\BillingException;
 use Infuse\Test;
 use Pulsar\ACLModel;
 use Stripe\Error\Api as StripeError;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 
-class BillingModelTest extends PHPUnit_Framework_TestCase
+class BillingModelTest extends MockeryTestCase
 {
     public static $model;
     public static $originalDriver;
@@ -78,6 +80,8 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
 
     public function testStripeCustomerRetrieveFail()
     {
+        $this->expectException(BillingException::class);
+
         $testModel = new TestBillingModel();
         $testModel->stripe_customer = 'cust_test';
 
@@ -88,7 +92,7 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
                        ->andThrow($e)
                        ->once();
 
-        $this->assertFalse($testModel->stripeCustomer());
+        $testModel->stripeCustomer();
     }
 
     public function testStripeCustomerCreate()
@@ -117,6 +121,8 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
 
     public function testStripeCustomerCreateFail()
     {
+        $this->expectException(BillingException::class);
+
         $testModel = new TestBillingModel(1);
         $testModel->stripe_customer = false;
 
@@ -132,7 +138,7 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
                        ->andThrow($e)
                        ->once();
 
-        $this->assertFalse($testModel->stripeCustomer());
+        $testModel->stripeCustomer();
     }
 
     public function testSetDefaultCard()
@@ -161,6 +167,8 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
 
     public function testSetDefaultCardFail()
     {
+        $this->expectException(BillingException::class);
+
         $testModel = new TestBillingModel(1);
         $testModel->stripe_customer = 'test';
 
@@ -181,9 +189,7 @@ class BillingModelTest extends PHPUnit_Framework_TestCase
                      ->withArgs(['apiKey'])
                      ->once();
 
-        $this->assertFalse($testModel->setDefaultCard('tok_test'));
-
-        $this->assertEquals('tok_test', $customer->source);
+        $testModel->setDefaultCard('tok_test');
     }
 
     public function testSubscription()
