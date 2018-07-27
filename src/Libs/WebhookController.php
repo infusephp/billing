@@ -73,8 +73,13 @@ class WebhookController
             // find out which user this event is for by cross-referencing the customer id
             $modelClass = $this->app['config']->get('billing.model');
 
-            $member = $modelClass::where('stripe_customer', $eventData->customer)
-                ->first();
+            $stripeCustomerId = $eventData->customer;
+            if (!$stripeCustomerId && $chargeId = $eventData->charge) {
+                $charge = Charge::retrieve($chargeId);
+                $stripeCustomerId = $charge->customer;
+            }
+
+            $member = $modelClass::where('stripe_customer', $stripeCustomerId)->first();
 
             if (!$member) {
                 return self::ERROR_CUSTOMER_NOT_FOUND;
