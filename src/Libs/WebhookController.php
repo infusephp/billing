@@ -81,7 +81,7 @@ class WebhookController
 
             $stripeCustomerId = $eventData->customer;
             if (!$stripeCustomerId && $chargeId = $eventData->charge) {
-                $charge = Charge::retrieve($chargeId);
+                $charge = Charge::retrieve($chargeId, $this->apiKey);
                 $stripeCustomerId = $charge->customer;
             }
 
