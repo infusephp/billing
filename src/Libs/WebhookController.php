@@ -5,8 +5,11 @@ namespace Infuse\Billing\Libs;
 use ICanBoogie\Inflector;
 use Infuse\Application;
 use Infuse\HasApp;
+use infuse\Request;
+use infuse\Response;
 use Stripe\Error\Base as StripeError;
 use Stripe\Event;
+use Stripe\Charge;
 
 class WebhookController
 {
@@ -20,15 +23,18 @@ class WebhookController
     const ERROR_CUSTOMER_NOT_FOUND = 'customer_not_found';
     const SUCCESS = 'OK';
 
-    private $stripeEvent;
+    /**
+     * @var string|null
+     */
+    private $apiKey;
 
     /**
      * Route to handle an incoming webhook.
      *
-     * @param Infuse\Request  $req
-     * @param Infuse\Response $res
+     * @param Request  $req
+     * @param Response $res
      */
-    public function webhook($req, $res)
+    public function webhook(Request $req, Response $res)
     {
         $this->app['user']->promoteToSuperUser();
 
