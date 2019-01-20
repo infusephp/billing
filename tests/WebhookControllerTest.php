@@ -1,9 +1,12 @@
 <?php
 
+namespace Infuse\Billing\Tests;
+
 use Infuse\Billing\Libs\WebhookController;
 use Infuse\Test;
 use Stripe\Error\Api as StripeError;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
+use Mockery;
 
 class WebhookControllerTest extends MockeryTestCase
 {
@@ -12,6 +15,8 @@ class WebhookControllerTest extends MockeryTestCase
 
     public static function setUpBeforeClass()
     {
+        parent::setUpBeforeClass();
+
         self::$webhook = new TestController();
         self::$webhook->setApp(Test::$app);
 
@@ -20,6 +25,7 @@ class WebhookControllerTest extends MockeryTestCase
 
     protected function tearDown()
     {
+        parent::tearDown();
         TestBillingModel::setDriver(static::$modelDriver);
     }
 
@@ -51,10 +57,15 @@ class WebhookControllerTest extends MockeryTestCase
 
     public function testHandleException()
     {
+        $staticStripe = Mockery::mock('alias:Stripe\Stripe');
+        $staticStripe->shouldReceive('setApiKey')
+            ->withArgs(['apiKey'])
+            ->once();
+
         $e = new StripeError('error');
         $staticEvent = Mockery::mock('alias:Stripe\Event');
         $staticEvent->shouldReceive('retrieve')
-                    ->withArgs(['evt_test', 'apiKey'])
+                    ->withArgs(['evt_test'])
                     ->andThrow($e);
 
         $event = [
@@ -73,14 +84,19 @@ class WebhookControllerTest extends MockeryTestCase
                ->andReturn([]);
         TestBillingModel::setDriver($driver);
 
-        $validatedEvent = new stdClass();
+        $staticStripe = Mockery::mock('alias:Stripe\Stripe');
+        $staticStripe->shouldReceive('setApiKey')
+            ->withArgs(['apiKey'])
+            ->once();
+
+        $validatedEvent = new \stdClass();
         $validatedEvent->type = 'customer.subscription.updated';
-        $validatedEvent->data = new stdClass();
-        $validatedEvent->data->object = new stdClass();
+        $validatedEvent->data = new \stdClass();
+        $validatedEvent->data->object = new \stdClass();
         $validatedEvent->data->object->customer = 'cus_test';
         $staticEvent = Mockery::mock('alias:Stripe\Event');
         $staticEvent->shouldReceive('retrieve')
-                    ->withArgs(['evt_test2', 'apiKey'])
+                    ->withArgs(['evt_test2'])
                     ->andReturn($validatedEvent);
 
         $event = [
@@ -99,14 +115,19 @@ class WebhookControllerTest extends MockeryTestCase
                ->andReturn([['id' => 100]]);
         TestBillingModel::setDriver($driver);
 
+        $staticStripe = Mockery::mock('alias:Stripe\Stripe');
+        $staticStripe->shouldReceive('setApiKey')
+            ->withArgs(['apiKey'])
+            ->once();
+
         $staticEvent = Mockery::mock('alias:Stripe\Event');
-        $validatedEvent = new stdClass();
+        $validatedEvent = new \stdClass();
         $validatedEvent->type = 'event.not_found';
-        $validatedEvent->data = new stdClass();
-        $validatedEvent->data->object = new stdClass();
+        $validatedEvent->data = new \stdClass();
+        $validatedEvent->data->object = new \stdClass();
         $validatedEvent->data->object->customer = 'cus_test';
         $staticEvent->shouldReceive('retrieve')
-                    ->withArgs(['evt_test3', 'apiKey'])
+                    ->withArgs(['evt_test3'])
                     ->andReturn($validatedEvent);
 
         $event = [
@@ -125,14 +146,19 @@ class WebhookControllerTest extends MockeryTestCase
                ->andReturn([['id' => 100]]);
         TestBillingModel::setDriver($driver);
 
-        $validatedEvent = new stdClass();
+        $staticStripe = Mockery::mock('alias:Stripe\Stripe');
+        $staticStripe->shouldReceive('setApiKey')
+            ->withArgs(['apiKey'])
+            ->once();
+
+        $validatedEvent = new \stdClass();
         $validatedEvent->type = 'test';
-        $validatedEvent->data = new stdClass();
-        $validatedEvent->data->object = new stdClass();
+        $validatedEvent->data = new \stdClass();
+        $validatedEvent->data->object = new \stdClass();
         $validatedEvent->data->object->customer = 'cus_test';
         $staticEvent = Mockery::mock('alias:Stripe\Event');
         $staticEvent->shouldReceive('retrieve')
-                    ->withArgs(['evt_test', 'apiKey'])
+                    ->withArgs(['evt_test'])
                     ->andReturn($validatedEvent);
 
         $event = [

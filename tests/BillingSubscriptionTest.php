@@ -1,10 +1,13 @@
 <?php
 
+namespace Infuse\Billing\Tests;
+
 use Infuse\Billing\Libs\BillingSubscription;
 use Infuse\Test;
 use Stripe\Error\Api as StripeError;
 use Infuse\Billing\Exception\BillingException;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
+use Mockery;
 
 class BillingSubscriptionTest extends MockeryTestCase
 {
@@ -117,7 +120,7 @@ class BillingSubscriptionTest extends MockeryTestCase
 
     public function testCreate()
     {
-        $resultSub = new stdClass();
+        $resultSub = new \stdClass();
         $resultSub->status = 'active';
         $resultSub->current_period_end = 100;
         $resultSub->trial_end = 100;
@@ -130,7 +133,7 @@ class BillingSubscriptionTest extends MockeryTestCase
                  ->andReturn($resultSub)
                  ->once();
 
-        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member = Mockery::mock(TestBillingModel::class.'[stripeCustomer,save]');
         $member->shouldReceive('stripeCustomer')
                 ->andReturn($customer)
                 ->once();
@@ -150,7 +153,7 @@ class BillingSubscriptionTest extends MockeryTestCase
 
     public function testCreateWithToken()
     {
-        $resultSub = new stdClass();
+        $resultSub = new \stdClass();
         $resultSub->status = 'trialing';
         $resultSub->current_period_end = 100;
         $resultSub->trial_end = 100;
@@ -163,7 +166,7 @@ class BillingSubscriptionTest extends MockeryTestCase
                  ->andReturn($resultSub)
                  ->once();
 
-        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member = Mockery::mock(TestBillingModel::class.'[stripeCustomer,save]');
         $member->shouldReceive('stripeCustomer')
                 ->andReturn($customer)
                 ->once();
@@ -182,7 +185,7 @@ class BillingSubscriptionTest extends MockeryTestCase
 
     public function testCreateNoTrial()
     {
-        $resultSub = new stdClass();
+        $resultSub = new \stdClass();
         $resultSub->status = 'active';
         $resultSub->current_period_end = 100;
         $resultSub->trial_end = 0;
@@ -195,7 +198,7 @@ class BillingSubscriptionTest extends MockeryTestCase
                  ->andReturn($resultSub)
                  ->once();
 
-        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member = Mockery::mock(TestBillingModel::class.'[stripeCustomer,save]');
         $member->shouldReceive('stripeCustomer')
                 ->andReturn($customer)
                 ->once();
@@ -223,7 +226,7 @@ class BillingSubscriptionTest extends MockeryTestCase
             ->withArgs([['plan' => 'test', 'source' => 'tok_test']])
             ->andThrow($e);
 
-        $member = Mockery::mock('TestBillingModel[stripeCustomer]');
+        $member = Mockery::mock(TestBillingModel::class.'[stripeCustomer]');
         $member->shouldReceive('stripeCustomer')
                 ->andReturn($customer)
                 ->once();
@@ -248,11 +251,11 @@ class BillingSubscriptionTest extends MockeryTestCase
     {
         $trialEnds = time() + 1000;
 
-        $resultSub = new stdClass();
+        $resultSub = new \stdClass();
         $resultSub->status = 'active';
         $resultSub->current_period_end = 100;
         $resultSub->trial_end = 100;
-        $resultSub->plan = new stdClass();
+        $resultSub->plan = new \stdClass();
         $resultSub->plan->id = 'blah';
 
         $customer = Mockery::mock('StripeCustomer');
@@ -264,7 +267,7 @@ class BillingSubscriptionTest extends MockeryTestCase
             ->andReturn($resultSub)
             ->once();
 
-        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member = Mockery::mock(TestBillingModel::class.'[stripeCustomer,save]');
         $member->shouldReceive('stripeCustomer')
                 ->andReturn($customer)
                 ->once();
@@ -302,7 +305,7 @@ class BillingSubscriptionTest extends MockeryTestCase
                     'trial_end' => 'now', ]])
                   ->andThrow($e);
 
-        $member = Mockery::mock('TestBillingModel[stripeCustomer]');
+        $member = Mockery::mock(TestBillingModel::class.'[stripeCustomer]');
         $member->shouldReceive('stripeCustomer')
                 ->andReturn($customer)
                 ->once();
@@ -320,10 +323,10 @@ class BillingSubscriptionTest extends MockeryTestCase
 
     public function testCancelNoStripeCustomer()
     {
-        $resultSub = new stdClass();
+        $resultSub = new \stdClass();
         $resultSub->status = 'canceled';
 
-        $member = Mockery::mock('TestBillingModel[save]');
+        $member = Mockery::mock(TestBillingModel::class.'[save]');
         $member->shouldReceive('save')->once();
 
         $member->canceled = false;
@@ -351,10 +354,10 @@ class BillingSubscriptionTest extends MockeryTestCase
 
     public function testCancelNotCharged()
     {
-        $resultSub = new stdClass();
+        $resultSub = new \stdClass();
         $resultSub->status = 'canceled';
 
-        $member = Mockery::mock('TestBillingModel[save]');
+        $member = Mockery::mock(TestBillingModel::class.'[save]');
         $member->shouldReceive('save')->once();
 
         $member->canceled = false;
@@ -381,7 +384,7 @@ class BillingSubscriptionTest extends MockeryTestCase
 
     public function testCancel()
     {
-        $resultSub = new stdClass();
+        $resultSub = new \stdClass();
         $resultSub->status = 'canceled';
 
         $customer = Mockery::mock('StripeCustomer');
@@ -389,7 +392,7 @@ class BillingSubscriptionTest extends MockeryTestCase
                  ->andReturn($resultSub)
                  ->once();
 
-        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member = Mockery::mock(TestBillingModel::class.'[stripeCustomer,save]');
         $member->shouldReceive('stripeCustomer')
                 ->andReturn($customer)
                 ->once();
@@ -411,7 +414,7 @@ class BillingSubscriptionTest extends MockeryTestCase
 
     public function testCancelAtPeriodEnd()
     {
-        $resultSub = new stdClass();
+        $resultSub = new \stdClass();
         $resultSub->status = 'active';
         $resultSub->cancel_at_period_end = true;
         $resultSub->canceled_at = time();
@@ -422,7 +425,7 @@ class BillingSubscriptionTest extends MockeryTestCase
                  ->andReturn($resultSub)
                  ->once();
 
-        $member = Mockery::mock('TestBillingModel[stripeCustomer,save]');
+        $member = Mockery::mock(TestBillingModel::class.'[stripeCustomer,save]');
         $member->shouldReceive('stripeCustomer')
                 ->andReturn($customer)
                 ->once();
@@ -452,7 +455,7 @@ class BillingSubscriptionTest extends MockeryTestCase
         $customer->shouldReceive('cancelSubscription')
                  ->andThrow($e);
 
-        $member = Mockery::mock('TestBillingModel[stripeCustomer]');
+        $member = Mockery::mock(TestBillingModel::class.'[stripeCustomer]');
         $member->shouldReceive('stripeCustomer')
                 ->andReturn($customer)
                 ->once();

@@ -1,5 +1,7 @@
 <?php
 
+namespace Infuse\Billing\Tests;
+
 use Infuse\Billing\Models\BillableModel;
 use Pulsar\Model;
 

@@ -1,10 +1,13 @@
 <?php
 
+namespace Infuse\Billing\Tests;
+
 use Infuse\Billing\Libs\StripeWebhook;
 use Infuse\Billing\Models\BillingHistory;
 use Infuse\Test;
-use Pulsar\ACLModel;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
+use Mockery;
+use Pulsar\ACLModelRequester;
 
 class StripeWebhookTest extends MockeryTestCase
 {
@@ -12,6 +15,8 @@ class StripeWebhookTest extends MockeryTestCase
 
     public static function setUpBeforeClass()
     {
+        parent::setUpBeforeClass();
+
         Test::$app['database']->getDefault()
             ->delete('BillingHistories')
             ->where('stripe_transaction', 'charge_failed')
@@ -21,18 +26,18 @@ class StripeWebhookTest extends MockeryTestCase
         self::$webhook->setApp(Test::$app);
 
         $model = Mockery::mock('Pulsar\Model');
-        ACLModel::setRequester($model);
+        ACLModelRequester::set($model);
     }
 
     public function testHandleChargeFailed()
     {
-        $event = new stdClass();
+        $event = new \stdClass();
         $event->id = 'charge_failed';
         $event->customer = 'cus_test';
         $event->description = 'Descr';
         $event->created = 12;
         $event->amount = 1000;
-        $event->source = new stdClass();
+        $event->source = new \stdClass();
         $event->source->object = 'card';
         $event->source->last4 = '1234';
         $event->source->exp_month = '05';
@@ -78,13 +83,13 @@ class StripeWebhookTest extends MockeryTestCase
 
     public function testHandleChargeSucceeded()
     {
-        $event = new stdClass();
+        $event = new \stdClass();
         $event->id = 'charge_succeeded';
         $event->customer = 'cus_test';
         $event->description = 'Descr';
         $event->created = 12;
         $event->amount = 1000;
-        $event->source = new stdClass();
+        $event->source = new \stdClass();
         $event->source->object = 'card';
         $event->source->last4 = '1234';
         $event->source->exp_month = '05';
@@ -128,14 +133,14 @@ class StripeWebhookTest extends MockeryTestCase
 
     public function testHandleSubscriptionCreated()
     {
-        $event = new stdClass();
+        $event = new \stdClass();
         $event->status = 'trialing';
         $event->trial_end = 100;
         $event->current_period_end = 101;
-        $event->plan = new stdClass();
+        $event->plan = new \stdClass();
         $event->plan->id = 'growth';
 
-        $member = Mockery::mock('TestBillingModel[save]');
+        $member = Mockery::mock(TestBillingModel::class.'[save]');
         $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionCreated($event, $member));
@@ -149,13 +154,13 @@ class StripeWebhookTest extends MockeryTestCase
 
     public function testHandleSubscriptionUnpaid()
     {
-        $event = new stdClass();
+        $event = new \stdClass();
         $event->status = 'unpaid';
         $event->trial_end = 100;
-        $event->plan = new stdClass();
+        $event->plan = new \stdClass();
         $event->plan->id = 'startup';
 
-        $member = Mockery::mock('TestBillingModel[save]');
+        $member = Mockery::mock(TestBillingModel::class.'[save]');
         $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
@@ -166,14 +171,14 @@ class StripeWebhookTest extends MockeryTestCase
 
     public function testHandleSubscriptionPastDue()
     {
-        $event = new stdClass();
+        $event = new \stdClass();
         $event->status = 'past_due';
         $event->trial_end = 100;
         $event->current_period_end = 101;
-        $event->plan = new stdClass();
+        $event->plan = new \stdClass();
         $event->plan->id = 'startup';
 
-        $member = Mockery::mock('TestBillingModel[save]');
+        $member = Mockery::mock(TestBillingModel::class.'[save]');
         $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
@@ -188,14 +193,14 @@ class StripeWebhookTest extends MockeryTestCase
 
     public function testHandleSubscriptionActive()
     {
-        $event = new stdClass();
+        $event = new \stdClass();
         $event->status = 'active';
         $event->trial_end = 100;
         $event->current_period_end = 1000;
-        $event->plan = new stdClass();
+        $event->plan = new \stdClass();
         $event->plan->id = 'startup';
 
-        $member = Mockery::mock('TestBillingModel[save]');
+        $member = Mockery::mock(TestBillingModel::class.'[save]');
         $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionUpdated($event, $member));
@@ -210,9 +215,9 @@ class StripeWebhookTest extends MockeryTestCase
 
     public function testHandleSubscriptionCanceled()
     {
-        $event = new stdClass();
+        $event = new \stdClass();
 
-        $member = Mockery::mock('TestBillingModel[save]');
+        $member = Mockery::mock(TestBillingModel::class.'[save]');
         $member->shouldReceive('save')->once();
 
         $this->assertTrue(self::$webhook->handleCustomerSubscriptionDeleted($event, $member));

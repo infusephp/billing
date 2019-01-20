@@ -1,9 +1,12 @@
 <?php
 
+namespace Infuse\Billing\Tests;
+
 use Infuse\Billing\Jobs\SendTrialReminders;
 use Infuse\Test;
-use Pulsar\ACLModel;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
+use Mockery;
+use Pulsar\ACLModelRequester;
 
 class SendTrialRemindersTest extends MockeryTestCase
 {
@@ -12,7 +15,9 @@ class SendTrialRemindersTest extends MockeryTestCase
 
     public static function setUpBeforeClass()
     {
-        ACLModel::setRequester(Mockery::mock('Pulsar\Model'));
+        parent::setUpBeforeClass();
+
+        ACLModelRequester::set(Mockery::mock('Pulsar\Model'));
 
         self::$originalDriver = TestBillingModel::getDriver();
         $driver = Mockery::mock('Pulsar\Driver\DriverInterface');
@@ -26,6 +31,7 @@ class SendTrialRemindersTest extends MockeryTestCase
 
     public static function tearDownAfterClass()
     {
+        parent::tearDownAfterClass();
         TestBillingModel::setDriver(self::$originalDriver);
     }
 
@@ -73,10 +79,10 @@ class SendTrialRemindersTest extends MockeryTestCase
         $job = Mockery::mock('Infuse\Billing\Jobs\SendTrialReminders[getTrialsEndingSoon,getEndedTrials]');
         $job->setApp(Test::$app);
 
-        $member = Mockery::mock('TestBillingModel[save]');
+        $member = Mockery::mock(TestBillingModel::class.'[save]');
         $member->shouldReceive('save')->once();
 
-        $member2 = Mockery::mock('TestBillingModel[save]');
+        $member2 = Mockery::mock(TestBillingModel::class.'[save]');
         $member2->shouldReceive('save')->once();
 
         $job->shouldReceive('getTrialsEndingSoon')

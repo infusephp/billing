@@ -1,10 +1,12 @@
 <?php
 
+namespace Infuse\Billing\Tests;
+
 use Infuse\Billing\Exception\BillingException;
-use Infuse\Test;
 use Pulsar\ACLModel;
 use Stripe\Error\Api as StripeError;
 use Mockery\Adapter\Phpunit\MockeryTestCase;
+use Mockery;
 
 class BillingModelTest extends MockeryTestCase
 {
@@ -13,6 +15,8 @@ class BillingModelTest extends MockeryTestCase
 
     public static function setUpBeforeClass()
     {
+        parent::setUpBeforeClass();
+
         $requester = Mockery::mock('Pulsar\Model');
         $requester->shouldReceive('id')->andReturn(1);
         ACLModel::setRequester($requester);
@@ -28,6 +32,7 @@ class BillingModelTest extends MockeryTestCase
 
     public static function tearDownAfterClass()
     {
+        parent::tearDownAfterClass();
         TestBillingModel::setDriver(self::$originalDriver);
     }
 
@@ -67,7 +72,7 @@ class BillingModelTest extends MockeryTestCase
         $testModel = new TestBillingModel();
         $testModel->stripe_customer = 'cust_test';
 
-        $customer = new stdClass();
+        $customer = new \stdClass();
 
         $staticCustomer = Mockery::mock('alias:Stripe\Customer');
         $staticCustomer->shouldReceive('retrieve')
@@ -97,12 +102,12 @@ class BillingModelTest extends MockeryTestCase
 
     public function testStripeCustomerCreate()
     {
-        $testModel = Mockery::mock('TestBillingModel[save]', [1]);
+        $testModel = Mockery::mock(TestBillingModel::class.'[save]', [1]);
         $testModel->shouldReceive('save')
                   ->andReturn(true);
         $testModel->stripe_customer = null;
 
-        $customer = new stdClass();
+        $customer = new \stdClass();
         $customer->id = 'cust_test';
 
         $staticStripe = Mockery::mock('alias:Stripe\Stripe');

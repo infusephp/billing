@@ -3,6 +3,7 @@
 use JAQB\Services\ConnectionManager;
 use Pulsar\Driver\DatabaseDriver;
 use Pulsar\Services\ModelDriver;
+use Infuse\Billing\Tests\TestBillingModel;
 
 /* This configuration is used to run the tests */
 
