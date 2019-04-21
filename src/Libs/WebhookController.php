@@ -33,7 +33,7 @@ class WebhookController
      */
     public function webhook(Request $req, Response $res)
     {
-        $this->app['user']->promoteToSuperUser();
+        $this->app['auth']->getCurrentUser()->promoteToSuperUser();
 
         $res->setBody($this->handle($req->request()));
     }
