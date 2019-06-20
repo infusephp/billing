@@ -18,12 +18,8 @@ abstract class BillableModel extends ACLModel
     use HasApp;
 
     private static $billingProperties = [
-        'plan' => [
-            'null' => true,
-        ],
-        'stripe_customer' => [
-            'null' => true,
-        ],
+        'plan' => [],
+        'stripe_customer' => [],
         'renews_next' => [
             'type' => Model::TYPE_DATE,
             'null' => true,
@@ -38,7 +34,6 @@ abstract class BillableModel extends ACLModel
         ],
         'canceled' => [
             'type' => Model::TYPE_BOOLEAN,
-            'default' => false,
             'default' => false,
         ],
         'canceled_at' => [
